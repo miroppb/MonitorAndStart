@@ -118,7 +118,10 @@ namespace MonitorAndStart
             this.Controls.Add(this.BtnCancel);
             this.Controls.Add(this.TxtApplicatoin);
             this.Controls.Add(this.BtnOK);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "FrmApplication";
+            this.ShowInTaskbar = false;
+            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Application Parameters";
             this.ResumeLayout(false);
