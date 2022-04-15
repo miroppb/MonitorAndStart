@@ -3,6 +3,7 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -11,13 +12,19 @@ namespace MonitorAndStart
     public partial class FrmMain : Form
     {
         bool die = false;
+        bool starting = false;
         public FrmMain()
         {
             InitializeComponent();
+            starting = true;
+            if (Properties.Settings.Default.Admin)
+            {
+                CheckAdminStart();
+            }
             Log("Hello. Monitor And Start has started!");
             try
             {
-                string[] a = MonitorAndStart.Properties.Settings.Default.Items.Split(';');
+                string[] a = Properties.Settings.Default.Items.Split(';');
                 foreach (string b in a)
                 {
                     if (b != "")
@@ -29,6 +36,27 @@ namespace MonitorAndStart
             }
             catch { }
             //timer1_Tick(null, null);
+        }
+
+        private void CheckAdminStart()
+        {
+            if (!IsAdministrator())
+            {
+                MessageBox.Show("Please escalate Monitor and Start...");
+                ProcessStartInfo pp = new ProcessStartInfo();
+                pp.FileName = Application.ExecutablePath;
+                pp.Verb = "runas";
+                Process process = new Process();
+                process.StartInfo = pp;
+                process.Start();
+                die = true;
+            }
+        }
+
+        public bool IsAdministrator()
+        {
+            return (new WindowsPrincipal(WindowsIdentity.GetCurrent()))
+                    .IsInRole(WindowsBuiltInRole.Administrator);
         }
 
         private void BtnAdd_Click(object sender, EventArgs e)
@@ -45,8 +73,8 @@ namespace MonitorAndStart
 
                     //save items
                     string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
-                    MonitorAndStart.Properties.Settings.Default.Items = a;
-                    MonitorAndStart.Properties.Settings.Default.Save();
+                    Properties.Settings.Default.Items = a;
+                    Properties.Settings.Default.Save();
 
                     Log("Added '" + ofd.FileName + "' to list, and saved");
                 }
@@ -62,8 +90,8 @@ namespace MonitorAndStart
                 LstItems.Items.RemoveAt(b);
 
                 string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
-                MonitorAndStart.Properties.Settings.Default.Items = a;
-                MonitorAndStart.Properties.Settings.Default.Save();
+                Properties.Settings.Default.Items = a;
+                Properties.Settings.Default.Save();
 
                 Log("Removed");
             }
@@ -212,8 +240,14 @@ namespace MonitorAndStart
 
         private void FrmMain_Load(object sender, EventArgs e)
         {
+            if (die)
+                Application.Exit();
             if (LstItems.Items.Count > 0)
                 this.WindowState = FormWindowState.Minimized;
+
+            ChkAdmin.Checked = Properties.Settings.Default.Admin;
+
+            starting = false;
         }
 
         private void startToolStripMenuItem_Click(object sender, EventArgs e)
@@ -242,12 +276,29 @@ namespace MonitorAndStart
 
                     //save items
                     string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
-                    MonitorAndStart.Properties.Settings.Default.Items = a;
-                    MonitorAndStart.Properties.Settings.Default.Save();
+                    Properties.Settings.Default.Items = a;
+                    Properties.Settings.Default.Save();
 
                     Log("Changed '" + f.TxtApplicatoin.Text + "', and saved");
                 }
             }
+        }
+
+        private void ChkAdmin_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!starting)
+            {
+                Properties.Settings.Default.Admin = ChkAdmin.Checked;
+                Properties.Settings.Default.Save();
+
+                if (ChkAdmin.Checked)
+                    CheckAdminStart();
+            }
+        }
+
+        private void FrmMain_Deactivate(object sender, EventArgs e)
+        {
+            this.Hide();
         }
     }
 }
