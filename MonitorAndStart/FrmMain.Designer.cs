@@ -41,12 +41,13 @@
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.BtnRem = new System.Windows.Forms.Button();
             this.ChkAdmin = new System.Windows.Forms.CheckBox();
+            this.ChkCheckOnStart = new System.Windows.Forms.CheckBox();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // BtnStartStop
             // 
-            this.BtnStartStop.Location = new System.Drawing.Point(177, 12);
+            this.BtnStartStop.Location = new System.Drawing.Point(215, 12);
             this.BtnStartStop.Name = "BtnStartStop";
             this.BtnStartStop.Size = new System.Drawing.Size(75, 23);
             this.BtnStartStop.TabIndex = 1;
@@ -142,11 +143,23 @@
             this.ChkAdmin.UseVisualStyleBackColor = true;
             this.ChkAdmin.CheckedChanged += new System.EventHandler(this.ChkAdmin_CheckedChanged);
             // 
+            // ChkCheckOnStart
+            // 
+            this.ChkCheckOnStart.AutoSize = true;
+            this.ChkCheckOnStart.Location = new System.Drawing.Point(110, 16);
+            this.ChkCheckOnStart.Name = "ChkCheckOnStart";
+            this.ChkCheckOnStart.Size = new System.Drawing.Size(99, 17);
+            this.ChkCheckOnStart.TabIndex = 6;
+            this.ChkCheckOnStart.Text = "Check On Start";
+            this.ChkCheckOnStart.UseVisualStyleBackColor = true;
+            this.ChkCheckOnStart.CheckedChanged += new System.EventHandler(this.ChkCheckOnStart_CheckedChanged);
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(428, 265);
+            this.Controls.Add(this.ChkCheckOnStart);
             this.Controls.Add(this.ChkAdmin);
             this.Controls.Add(this.BtnRem);
             this.Controls.Add(this.LstItems);
@@ -156,7 +169,6 @@
             this.Name = "FrmMain";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Monitor and Start";
-            this.Deactivate += new System.EventHandler(this.FrmMain_Deactivate);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FrmMain_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FrmMain_FormClosed);
             this.Load += new System.EventHandler(this.FrmMain_Load);
@@ -179,6 +191,7 @@
         private System.Windows.Forms.Button BtnRem;
         private System.Windows.Forms.ToolStripMenuItem startToolStripMenuItem;
         public System.Windows.Forms.CheckBox ChkAdmin;
+        private System.Windows.Forms.CheckBox ChkCheckOnStart;
     }
 }
 

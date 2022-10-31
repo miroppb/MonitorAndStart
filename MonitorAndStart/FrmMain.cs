@@ -3,6 +3,10 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.NetworkInformation;
+using System.Security.Cryptography;
+using System.Security.Policy;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -35,7 +39,8 @@ namespace MonitorAndStart
                 }
             }
             catch { }
-            //timer1_Tick(null, null);
+            if (Properties.Settings.Default.CheckOnStart)
+                timer1_Tick(null, null);
         }
 
         private void CheckAdminStart()
@@ -61,24 +66,60 @@ namespace MonitorAndStart
 
         private void BtnAdd_Click(object sender, EventArgs e)
         {
-            OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Filter = "Application|*.exe";
-            if (ofd.ShowDialog() == DialogResult.OK)
+            FrmChoose frm = new FrmChoose();
+            DialogResult res = frm.ShowDialog(); //Yes = File, No = StuckFile, Cancel = Connection
+            if (res == DialogResult.Yes)
             {
-                FrmApplication f = new FrmApplication();
-                f.TxtApplicatoin.Text = ofd.FileName;
+                OpenFileDialog ofd = new OpenFileDialog();
+                ofd.Filter = "Application|*.exe";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    FrmApplication f = new FrmApplication();
+                    f.TxtApplicatoin.Text = ofd.FileName;
+                    if (f.ShowDialog() == DialogResult.OK)
+                    {
+                        LstItems.Items.Add("File:" + f.TxtApplicatoin.Text + "," + f.TxtParameters.Text + "," + f.ChkRestart.Checked.ToString());
+
+                        //save items
+                        string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
+                        Properties.Settings.Default.Items = a;
+                        Properties.Settings.Default.Save();
+
+                        Log("Added 'File:" + ofd.FileName + "' to list, and saved");
+                    }
+                }
+            }
+            else if (res == DialogResult.No)
+            {
+                FrmStuckFile f = new FrmStuckFile();
                 if (f.ShowDialog() == DialogResult.OK)
                 {
-                    LstItems.Items.Add(f.TxtApplicatoin.Text + "," + f.TxtParameters.Text + "," + f.ChkRestart.Checked.ToString());
+                    LstItems.Items.Add("Stuck:" + f.TxtFile.Text + "," + f.NUD.Value + "," + f.CmbDuration.SelectedItem.ToString());
 
                     //save items
                     string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
                     Properties.Settings.Default.Items = a;
                     Properties.Settings.Default.Save();
 
-                    Log("Added '" + ofd.FileName + "' to list, and saved");
+                    Log("Added 'Stuck:" + f.TxtFile.Text + "," + f.NUD.Value + "," + f.CmbDuration.SelectedItem.ToString() + "' to list, and saved");
                 }
             }
+            else if (res == DialogResult.Cancel)
+            {
+                FrmConnection f = new FrmConnection();
+                if (f.ShowDialog() == DialogResult.OK)
+                {
+                    LstItems.Items.Add("Connection:" + f.TxtFirst.Text + "," + f.TxtSecond.Text);
+
+                    //save items
+                    string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
+                    Properties.Settings.Default.Items = a;
+                    Properties.Settings.Default.Save();
+
+                    Log("Added 'Connection: " + f.TxtFirst.Text + ", " + f.TxtSecond.Text + "' to list, and saved");
+                }
+            }
+
         }
         private void BtnRem_Click(object sender, EventArgs e)
         {
@@ -99,56 +140,134 @@ namespace MonitorAndStart
 
         private async void timer1_Tick(object sender, EventArgs e)
         {
-            foreach (string a in LstItems.Items)
+            foreach (string file in LstItems.Items)
             {
-                string b = a.Split(',')[0];
-                string par = a.Split(',')[1];
-                bool r = Convert.ToBoolean(a.Split(',')[2]);
-                Log("Checking if '" + b + "' is running...");
-                if (!ProgramIsRunning(a))
+                if (file.StartsWith("File:"))
                 {
-                    Log("'" + b + "' is not running. Trying to start");
-                    try
+                    string aa = file.Remove(0, 5);
+                    string b = aa.Split(',')[0];
+                    string par = aa.Split(',')[1];
+                    bool r = Convert.ToBoolean(aa.Split(',')[2]);
+                    Log("Checking if '" + b + "' is running...");
+                    if (!ProgramIsRunning(aa))
                     {
-                        Process p = new Process();
-                        p.StartInfo.FileName = b;
-                        p.StartInfo.Arguments = par;
-                        p.StartInfo.WorkingDirectory = Path.GetDirectoryName(b);
-                        p.Start();
-                        Log("'" + b + "' has been started");
-                    }
-                    catch (Exception ex)
-                    {
-                        Log("Error starting '" + b + "'. Message: " + ex.Message);
-                    }
-                }
-                else if (r)
-                {
-                    Process[] runningProcesses = Process.GetProcesses();
-                    foreach (Process process in runningProcesses)
-                    {
-                        if (process.ProcessName == Path.GetFileNameWithoutExtension(b))
+                        Log("'" + b + "' is not running. Trying to start");
+                        try
                         {
-                            process.CloseMainWindow();
-                            await Task.Delay(5000);
+                            Process p = new Process();
+                            p.StartInfo.FileName = b;
+                            p.StartInfo.Arguments = par;
+                            p.StartInfo.WorkingDirectory = Path.GetDirectoryName(b);
+                            p.Start();
+                            Log("'" + b + "' has been started");
+                        }
+                        catch (Exception ex)
+                        {
+                            Log("Error starting '" + b + "'. Message: " + ex.Message);
+                        }
+                    }
+                    else if (r)
+                    {
+                        Process[] runningProcesses = Process.GetProcesses();
+                        foreach (Process process in runningProcesses)
+                        {
+                            if (process.ProcessName == Path.GetFileNameWithoutExtension(b))
+                            {
+                                process.CloseMainWindow();
+                                await Task.Delay(5000);
 
-                            try
-                            {
-                                Process p = new Process();
-                                p.StartInfo.FileName = b;
-                                p.StartInfo.Arguments = par;
-                                p.StartInfo.WorkingDirectory = Path.GetDirectoryName(b);
-                                p.Start();
-                                Log("'" + b + "' has been started");
-                            }
-                            catch (Exception ex)
-                            {
-                                Log("Error starting '" + b + "'. Message: " + ex.Message);
+                                try
+                                {
+                                    Process p = new Process();
+                                    p.StartInfo.FileName = b;
+                                    p.StartInfo.Arguments = par;
+                                    p.StartInfo.WorkingDirectory = Path.GetDirectoryName(b);
+                                    p.Start();
+                                    Log("'" + b + "' has been started");
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log("Error starting '" + b + "'. Message: " + ex.Message);
+                                }
                             }
                         }
                     }
                 }
+                else if (file.StartsWith("Stuck:"))
+                {
+                    string line = file.Remove(0, 6);
+                    string filename = line.Split(',')[0];
+                    int number = Convert.ToInt32(line.Split(',')[1]);
+                    string duration = line.Split(',')[2];
+
+                    double hours = 0;
+                    switch (duration)
+                    {
+                        case "Minutes":
+                            hours = number / 60;
+                            break;
+                        case "Hours":
+                            hours = number;
+                            break;
+                        case "Days":
+                            hours = number * 24;
+                            break;
+                    }
+
+                    Log($"Checking if file exists and is past threshold: {filename} {number} {duration}...");
+
+                    //check if file exists
+                    if (File.Exists(file))
+                    {
+                        if (IsAboveThreshold(filename, hours))
+                        {
+                            try
+                            {
+                                File.Delete(filename);
+                                Log($"File {filename} deleted");
+                            }
+                            catch (Exception ex)
+                            {
+                                Log($"Error deleting file: {filename}, message: {ex.Message}");
+                            }
+                        }
+                    }
+                }
+                else if (file.StartsWith("Connection:"))
+                {
+                    string line = file.Remove(0, 11);
+                    string firstConnection = line.Split(',')[0];
+                    string connectionToLoad = line.Split(',')[1];
+
+                    Log($"Checking if connection is online: {firstConnection}...");
+
+                    Ping ping = new Ping();
+                    PingReply reply = ping.Send(firstConnection, 2000);
+                    if (reply == null || reply.Status == IPStatus.TimedOut)
+                    {
+                        Log($"First connection is offline: {firstConnection}");
+                        // Call asynchronous network methods in a try/catch block to handle exceptions.
+                        try
+                        {
+                            Log($"Trying to load 2nd connection: {connectionToLoad}");
+                            HttpClient client = new HttpClient();
+                            string responseBody = await client.GetStringAsync(connectionToLoad);
+
+                            Console.WriteLine(responseBody);
+                        }
+                        catch (HttpRequestException ex)
+                        {
+                            Log($"Error loading 2nd connection: {connectionToLoad}, message: {ex.Message}");
+                        }
+                    }
+                }
             }
+        }
+
+        public bool IsAboveThreshold(string filename, double hours)
+        {
+            DateTime threshold = DateTime.Now.AddHours(-hours);
+            return File.GetCreationTime(filename) <= threshold;
         }
 
         private bool ProgramIsRunning(string FullPath)
@@ -296,9 +415,16 @@ namespace MonitorAndStart
             }
         }
 
-        private void FrmMain_Deactivate(object sender, EventArgs e)
+        private void ChkCheckOnStart_CheckedChanged(object sender, EventArgs e)
         {
-            this.Hide();
+            if (!starting)
+            {
+                Properties.Settings.Default.CheckOnStart = ChkCheckOnStart.Checked;
+                Properties.Settings.Default.Save();
+
+                if (ChkCheckOnStart.Checked)
+                    timer1_Tick(null, null);
+            }
         }
     }
 }
