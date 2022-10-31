@@ -30,7 +30,7 @@ namespace MonitorAndStart
         private void InitializeComponent()
         {
             this.BtnOK = new System.Windows.Forms.Button();
-            this.TxtApplicatoin = new System.Windows.Forms.TextBox();
+            this.TxtApplication = new System.Windows.Forms.TextBox();
             this.BtnCancel = new System.Windows.Forms.Button();
             this.TxtParameters = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -50,11 +50,11 @@ namespace MonitorAndStart
             // 
             // TxtApplicatoin
             // 
-            this.TxtApplicatoin.Location = new System.Drawing.Point(78, 15);
-            this.TxtApplicatoin.Name = "TxtApplicatoin";
-            this.TxtApplicatoin.Size = new System.Drawing.Size(195, 20);
-            this.TxtApplicatoin.TabIndex = 1;
-            this.TxtApplicatoin.Click += new System.EventHandler(this.TxtApplicatoin_Click);
+            this.TxtApplication.Location = new System.Drawing.Point(78, 15);
+            this.TxtApplication.Name = "TxtApplicatoin";
+            this.TxtApplication.Size = new System.Drawing.Size(195, 20);
+            this.TxtApplication.TabIndex = 1;
+            this.TxtApplication.Click += new System.EventHandler(this.TxtApplicatoin_Click);
             // 
             // BtnCancel
             // 
@@ -116,7 +116,7 @@ namespace MonitorAndStart
             this.Controls.Add(this.label1);
             this.Controls.Add(this.TxtParameters);
             this.Controls.Add(this.BtnCancel);
-            this.Controls.Add(this.TxtApplicatoin);
+            this.Controls.Add(this.TxtApplication);
             this.Controls.Add(this.BtnOK);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "FrmApplication";
@@ -135,7 +135,7 @@ namespace MonitorAndStart
         private System.Windows.Forms.Button BtnCancel;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
-        public System.Windows.Forms.TextBox TxtApplicatoin;
+        public System.Windows.Forms.TextBox TxtApplication;
         public System.Windows.Forms.TextBox TxtParameters;
         public System.Windows.Forms.CheckBox ChkRestart;
     }

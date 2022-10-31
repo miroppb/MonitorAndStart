@@ -75,10 +75,10 @@ namespace MonitorAndStart
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
                     FrmApplication f = new FrmApplication();
-                    f.TxtApplicatoin.Text = ofd.FileName;
+                    f.TxtApplication.Text = ofd.FileName;
                     if (f.ShowDialog() == DialogResult.OK)
                     {
-                        LstItems.Items.Add("File:" + f.TxtApplicatoin.Text + "," + f.TxtParameters.Text + "," + f.ChkRestart.Checked.ToString());
+                        LstItems.Items.Add("File:" + f.TxtApplication.Text + "," + f.TxtParameters.Text + "," + f.ChkRestart.Checked.ToString());
 
                         //save items
                         string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
@@ -197,10 +197,10 @@ namespace MonitorAndStart
                 {
                     string line = file.Remove(0, 6);
                     string filename = line.Split(',')[0];
-                    int number = Convert.ToInt32(line.Split(',')[1]);
+                    double number = Convert.ToInt32(line.Split(',')[1]);
                     string duration = line.Split(',')[2];
 
-                    double hours = 0;
+                    double hours = 0.0;
                     switch (duration)
                     {
                         case "Minutes":
@@ -217,7 +217,7 @@ namespace MonitorAndStart
                     Log($"Checking if file exists and is past threshold: {filename} {number} {duration}...");
 
                     //check if file exists
-                    if (File.Exists(file))
+                    if (File.Exists(filename))
                     {
                         if (IsAboveThreshold(filename, hours))
                         {
@@ -385,20 +385,62 @@ namespace MonitorAndStart
             int index = LstItems.IndexFromPoint(e.Location);
             if (index != System.Windows.Forms.ListBox.NoMatches)
             {
-                FrmApplication f = new FrmApplication();
-                f.TxtApplicatoin.Text = LstItems.Items[index].ToString().Split(',')[0];
-                f.TxtParameters.Text = LstItems.Items[index].ToString().Split(',')[1];
-                f.ChkRestart.Checked = Convert.ToBoolean(LstItems.Items[index].ToString().Split(',')[2].ToString());
-                if (f.ShowDialog() == DialogResult.OK)
+                string txt = LstItems.Items[index].ToString();
+                if (txt.StartsWith("File:"))
                 {
-                    LstItems.Items[index] = f.TxtApplicatoin.Text + "," + f.TxtParameters.Text + "," + f.ChkRestart.Checked.ToString();
+                    txt = txt.Remove(0, 5);
+                    FrmApplication f = new FrmApplication();
+                    f.TxtApplication.Text = txt.Split(',')[0];
+                    f.TxtParameters.Text = txt.Split(',')[1];
+                    f.ChkRestart.Checked = Convert.ToBoolean(txt.Split(',')[2].ToString());
+                    if (f.ShowDialog() == DialogResult.OK)
+                    {
+                        LstItems.Items[index] = f.TxtApplication.Text + "," + f.TxtParameters.Text + "," + f.ChkRestart.Checked.ToString();
 
-                    //save items
-                    string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
-                    Properties.Settings.Default.Items = a;
-                    Properties.Settings.Default.Save();
+                        //save items
+                        string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
+                        Properties.Settings.Default.Items = a;
+                        Properties.Settings.Default.Save();
 
-                    Log("Changed '" + f.TxtApplicatoin.Text + "', and saved");
+                        Log("Changed '" + f.TxtApplication.Text + "', and saved");
+                    }
+                }
+                else if (txt.StartsWith("Stuck:"))
+                {
+                    txt = txt.Remove(0, 6);
+                    FrmStuckFile f = new FrmStuckFile();
+                    f.TxtFile.Text = txt.Split(',')[0];
+                    f.NUD.Value = Convert.ToInt32(txt.Split(',')[1]);
+                    f.CmbDuration.SelectedIndex = f.CmbDuration.Items.IndexOf(txt.Split(',')[2].ToString());
+                    if (f.ShowDialog() == DialogResult.OK)
+                    {
+                        LstItems.Items[index] = "Stuck:" + f.TxtFile.Text + "," + f.NUD.Value + "," + f.CmbDuration.SelectedItem.ToString();
+
+                        //save items
+                        string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
+                        Properties.Settings.Default.Items = a;
+                        Properties.Settings.Default.Save();
+
+                        Log("Changed 'Stuck:" + f.TxtFile.Text + "," + f.NUD.Value + "," + f.CmbDuration.SelectedItem.ToString() + "', and saved");
+                    }
+                }
+                else if (txt.StartsWith("Connection:"))
+                {
+                    txt = txt.Remove(0, 11);
+                    FrmConnection f = new FrmConnection();
+                    f.TxtFirst.Text = txt.Split(',')[0];
+                    f.TxtSecond.Text = txt.Split(',')[1];
+                    if (f.ShowDialog() == DialogResult.OK)
+                    {
+                        LstItems.Items[index] = "Connection:" + f.TxtFirst.Text + "," + f.TxtSecond.Text;
+
+                        //save items
+                        string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
+                        Properties.Settings.Default.Items = a;
+                        Properties.Settings.Default.Save();
+
+                        Log("Changed 'Connection:" + f.TxtFirst.Text + "," + f.TxtSecond.Text + "', and saved");
+                    }
                 }
             }
         }

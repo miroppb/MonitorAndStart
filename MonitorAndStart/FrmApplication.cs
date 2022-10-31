@@ -16,7 +16,7 @@ namespace MonitorAndStart
             ofd.Filter = "Application|*.exe";
             if (ofd.ShowDialog() == DialogResult.OK)
             {
-                TxtApplicatoin.Text = ofd.FileName;
+                TxtApplication.Text = ofd.FileName;
             }
         }
 
