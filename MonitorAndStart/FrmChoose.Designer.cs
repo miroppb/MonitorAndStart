@@ -31,6 +31,7 @@
             this.BtnFile = new System.Windows.Forms.Button();
             this.BtnConnection = new System.Windows.Forms.Button();
             this.BtnStuck = new System.Windows.Forms.Button();
+            this.BtnService = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // BtnFile
@@ -45,7 +46,7 @@
             // 
             // BtnConnection
             // 
-            this.BtnConnection.Location = new System.Drawing.Point(247, 12);
+            this.BtnConnection.Location = new System.Drawing.Point(233, 12);
             this.BtnConnection.Name = "BtnConnection";
             this.BtnConnection.Size = new System.Drawing.Size(75, 23);
             this.BtnConnection.TabIndex = 1;
@@ -55,7 +56,7 @@
             // 
             // BtnStuck
             // 
-            this.BtnStuck.Location = new System.Drawing.Point(129, 12);
+            this.BtnStuck.Location = new System.Drawing.Point(125, 12);
             this.BtnStuck.Name = "BtnStuck";
             this.BtnStuck.Size = new System.Drawing.Size(75, 23);
             this.BtnStuck.TabIndex = 2;
@@ -63,15 +64,27 @@
             this.BtnStuck.UseVisualStyleBackColor = true;
             this.BtnStuck.Click += new System.EventHandler(this.BtnStuck_Click);
             // 
+            // BtnService
+            // 
+            this.BtnService.Location = new System.Drawing.Point(341, 12);
+            this.BtnService.Name = "BtnService";
+            this.BtnService.Size = new System.Drawing.Size(75, 23);
+            this.BtnService.TabIndex = 3;
+            this.BtnService.Text = "Service";
+            this.BtnService.UseVisualStyleBackColor = true;
+            this.BtnService.Click += new System.EventHandler(this.BtnService_Click);
+            // 
             // FrmChoose
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(334, 53);
+            this.ClientSize = new System.Drawing.Size(428, 53);
             this.ControlBox = false;
+            this.Controls.Add(this.BtnService);
             this.Controls.Add(this.BtnStuck);
             this.Controls.Add(this.BtnConnection);
             this.Controls.Add(this.BtnFile);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "FrmChoose";
             this.ShowIcon = false;
             this.ShowInTaskbar = false;
@@ -86,5 +99,6 @@
         private System.Windows.Forms.Button BtnFile;
         private System.Windows.Forms.Button BtnConnection;
         private System.Windows.Forms.Button BtnStuck;
+        private System.Windows.Forms.Button BtnService;
     }
 }

@@ -127,6 +127,7 @@
             this.Controls.Add(this.TxtFile);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.BtnOK);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "FrmStuckFile";
             this.ShowIcon = false;
             this.ShowInTaskbar = false;

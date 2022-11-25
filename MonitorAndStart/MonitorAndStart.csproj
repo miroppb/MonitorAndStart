@@ -56,6 +56,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -91,6 +92,12 @@
     <Compile Include="FrmMain.Designer.cs">
       <DependentUpon>FrmMain.cs</DependentUpon>
     </Compile>
+    <Compile Include="FrmService.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmService.Designer.cs">
+      <DependentUpon>FrmService.cs</DependentUpon>
+    </Compile>
     <Compile Include="FrmStuckFile.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -116,6 +123,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmService.resx">
+      <DependentUpon>FrmService.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FrmStuckFile.resx">
       <DependentUpon>FrmStuckFile.cs</DependentUpon>

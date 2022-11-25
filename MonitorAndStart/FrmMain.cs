@@ -1,13 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.NetworkInformation;
-using System.Security.Cryptography;
-using System.Security.Policy;
 using System.Security.Principal;
+using System.ServiceProcess;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -17,6 +17,8 @@ namespace MonitorAndStart
     {
         bool die = false;
         bool starting = false;
+        Dictionary<string, DateTime> services = new Dictionary<string, DateTime>();
+
         public FrmMain()
         {
             InitializeComponent();
@@ -117,6 +119,23 @@ namespace MonitorAndStart
                     Properties.Settings.Default.Save();
 
                     Log("Added 'Connection: " + f.TxtFirst.Text + ", " + f.TxtSecond.Text + "' to list, and saved");
+                }
+            }
+            else if (res == DialogResult.Abort)
+            {
+                MessageBox.Show("Be aware, that Monitor And Start needs to run as an Admin to restart a Service");
+                FrmService f = new FrmService(null, 0);
+                if (f.ShowDialog() == DialogResult.OK)
+                {
+                    LstItems.Items.Add("Service:" + f.CurrentService + "," + f.CurrentHours);
+                    services.Add(f.CurrentService, DateTime.Now.AddHours(f.CurrentHours));
+
+                    //save items
+                    string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
+                    Properties.Settings.Default.Items = a;
+                    Properties.Settings.Default.Save();
+
+                    Log("Added 'Service: " + f.CurrentService + "," + f.CurrentHours + "' to list, and saved");
                 }
             }
 
@@ -241,23 +260,63 @@ namespace MonitorAndStart
 
                     Log($"Checking if connection is online: {firstConnection}...");
 
-                    Ping ping = new Ping();
-                    PingReply reply = ping.Send(firstConnection, 2000);
-                    if (reply == null || reply.Status == IPStatus.TimedOut)
+                    PingReply reply = null;
+                    try
                     {
-                        Log($"First connection is offline: {firstConnection}");
-                        // Call asynchronous network methods in a try/catch block to handle exceptions.
+                        Ping ping = new Ping();
+                        reply = ping.Send(firstConnection, 2000);
+
+                        if (reply == null || reply.Status == IPStatus.TimedOut)
+                        {
+                            Log($"First connection is offline: {firstConnection}");
+                            // Call asynchronous network methods in a try/catch block to handle exceptions.
+                            try
+                            {
+                                Log($"Trying to load 2nd connection: {connectionToLoad}");
+                                HttpClient client = new HttpClient();
+                                string responseBody = await client.GetStringAsync(connectionToLoad);
+
+                                Console.WriteLine(responseBody);
+                            }
+                            catch (HttpRequestException ex)
+                            {
+                                Log($"Error loading 2nd connection: {connectionToLoad}, message: {ex.Message}");
+                            }
+                        }
+                    }
+                    catch { Log($"Error pinging: {firstConnection}"); }
+                }
+                else if (file.StartsWith("Service:"))
+                {
+                    string line = file.Remove(0, 8);
+                    string service = line.Split(',')[0];
+                    int hours = Convert.ToInt32(line.Split(',')[1]);
+
+                    Log($"Checking Service: {service}");
+
+                    if (!services.ContainsKey(service))
+                        services.Add(service, DateTime.Now.AddHours(hours));
+
+                    if (services[service].Day == DateTime.Now.Day && services[service].Hour == DateTime.Now.Hour)
+                    {
                         try
                         {
-                            Log($"Trying to load 2nd connection: {connectionToLoad}");
-                            HttpClient client = new HttpClient();
-                            string responseBody = await client.GetStringAsync(connectionToLoad);
+                            Log($"Trying to restart {service}.");
 
-                            Console.WriteLine(responseBody);
+                            ServiceController sc = new ServiceController(service);
+                            sc.Stop();
+
+                            await Task.Delay(1000);
+                            sc.Start();
+
+                            Log($"{service} restarted successfully");
+
+                            services[service] = DateTime.Now.AddHours(hours);
                         }
-                        catch (HttpRequestException ex)
+                        catch
                         {
-                            Log($"Error loading 2nd connection: {connectionToLoad}, message: {ex.Message}");
+                            Log($"Restarting {service} Failed");
+                            services[service] = DateTime.Now.AddHours(1);
                         }
                     }
                 }
@@ -440,6 +499,22 @@ namespace MonitorAndStart
                         Properties.Settings.Default.Save();
 
                         Log("Changed 'Connection:" + f.TxtFirst.Text + "," + f.TxtSecond.Text + "', and saved");
+                    }
+                }
+                else if (txt.StartsWith("Service:"))
+                {
+                    txt = txt.Remove(0, 11);
+                    FrmService f = new FrmService(txt.Split(',')[0], Convert.ToInt32(txt.Split(',')[1]));
+                    if (f.ShowDialog() == DialogResult.OK)
+                    {
+                        LstItems.Items[index] = "Service:" + f.CurrentHours + "," + f.CurrentService;
+
+                        //save items
+                        string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
+                        Properties.Settings.Default.Items = a;
+                        Properties.Settings.Default.Save();
+
+                        Log("Changed 'Service:" + f.CurrentHours + "," + f.CurrentService + "', and saved");
                     }
                 }
             }
