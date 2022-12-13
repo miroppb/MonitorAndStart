@@ -364,8 +364,13 @@ namespace MonitorAndStart
                             p.StartInfo.Arguments = par;
                             p.StartInfo.WorkingDirectory = Path.GetDirectoryName(filename);
                             p.StartInfo.WindowStyle = ws;
+                            p.StartInfo.RedirectStandardOutput = true;
+                            p.OutputDataReceived += P_OutputDataReceived;
                             p.Start();
                             Log("'" + filename + "' has been started");
+
+                            p.BeginOutputReadLine();
+                            p.WaitForExit();
                         }
                         catch (Exception ex)
                         {
@@ -374,6 +379,11 @@ namespace MonitorAndStart
                     }
                 }
             }
+        }
+
+        private void P_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            Log(e.Data);
         }
 
         public bool IsAboveThreshold(string filename, double hours)
