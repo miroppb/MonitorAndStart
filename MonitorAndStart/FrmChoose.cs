@@ -13,25 +13,31 @@ namespace MonitorAndStart
         private void BtnFile_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Yes; //File
-            this.Close();
+            Close();
         }
 
         private void BtnStuck_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.No; //Stuck
-            this.Close();
+            Close();
         }
 
         private void BtnConnection_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel; //Connection
-            this.Close();
+            Close();
         }
 
         private void BtnService_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Abort; //Service
-            this.Close();
+            Close();
+        }
+
+        private void BtnScript_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.OK;
+            Close();
         }
     }
 }

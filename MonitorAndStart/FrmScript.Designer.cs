@@ -1,7 +1,7 @@
 ﻿
 namespace MonitorAndStart
 {
-    partial class FrmApplication
+    partial class FrmScript
     {
         /// <summary>
         /// Required designer variable.
@@ -35,7 +35,11 @@ namespace MonitorAndStart
             this.TxtParameters = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.ChkRestart = new System.Windows.Forms.CheckBox();
+            this.ChkHidden = new System.Windows.Forms.CheckBox();
+            this.NUD = new System.Windows.Forms.NumericUpDown();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            ((System.ComponentModel.ISupportInitialize)(this.NUD)).BeginInit();
             this.SuspendLayout();
             // 
             // BtnOK
@@ -92,26 +96,64 @@ namespace MonitorAndStart
             this.label2.TabIndex = 5;
             this.label2.Text = "Paremeters";
             // 
-            // ChkRestart
+            // ChkHidden
             // 
-            this.ChkRestart.AutoSize = true;
-            this.ChkRestart.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.ChkRestart.Location = new System.Drawing.Point(27, 70);
-            this.ChkRestart.Name = "ChkRestart";
-            this.ChkRestart.Size = new System.Drawing.Size(66, 17);
-            this.ChkRestart.TabIndex = 6;
-            this.ChkRestart.Text = "Restart?";
-            this.ChkRestart.UseVisualStyleBackColor = true;
+            this.ChkHidden.AutoSize = true;
+            this.ChkHidden.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.ChkHidden.Location = new System.Drawing.Point(271, 71);
+            this.ChkHidden.Name = "ChkHidden";
+            this.ChkHidden.Size = new System.Drawing.Size(83, 17);
+            this.ChkHidden.TabIndex = 7;
+            this.ChkHidden.Text = "Run Hidden";
+            this.ChkHidden.UseVisualStyleBackColor = true;
             // 
-            // FrmApplication
+            // NUD
+            // 
+            this.NUD.Location = new System.Drawing.Point(78, 69);
+            this.NUD.Maximum = new decimal(new int[] {
+            400,
+            0,
+            0,
+            0});
+            this.NUD.Name = "NUD";
+            this.NUD.Size = new System.Drawing.Size(38, 20);
+            this.NUD.TabIndex = 8;
+            this.NUD.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(16, 72);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(56, 13);
+            this.label3.TabIndex = 9;
+            this.label3.Text = "Run every";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(122, 72);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(33, 13);
+            this.label4.TabIndex = 10;
+            this.label4.Text = "hours";
+            // 
+            // FrmScript
             // 
             this.AcceptButton = this.BtnOK;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.BtnCancel;
-            this.ClientSize = new System.Drawing.Size(366, 101);
+            this.ClientSize = new System.Drawing.Size(366, 98);
             this.ControlBox = false;
-            this.Controls.Add(this.ChkRestart);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.NUD);
+            this.Controls.Add(this.ChkHidden);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.TxtParameters);
@@ -119,11 +161,12 @@ namespace MonitorAndStart
             this.Controls.Add(this.TxtApplication);
             this.Controls.Add(this.BtnOK);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.Name = "FrmApplication";
+            this.Name = "FrmScript";
             this.ShowInTaskbar = false;
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Application Parameters";
+            ((System.ComponentModel.ISupportInitialize)(this.NUD)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -137,6 +180,9 @@ namespace MonitorAndStart
         private System.Windows.Forms.Label label2;
         public System.Windows.Forms.TextBox TxtApplication;
         public System.Windows.Forms.TextBox TxtParameters;
-        public System.Windows.Forms.CheckBox ChkRestart;
+        public System.Windows.Forms.CheckBox ChkHidden;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label4;
+        public System.Windows.Forms.NumericUpDown NUD;
     }
 }

@@ -18,6 +18,7 @@ namespace MonitorAndStart
         bool die = false;
         bool starting = false;
         Dictionary<string, DateTime> services = new Dictionary<string, DateTime>();
+        Dictionary<string, DateTime> scripts = new Dictionary<string, DateTime>();
 
         public FrmMain()
         {
@@ -69,7 +70,7 @@ namespace MonitorAndStart
         private void BtnAdd_Click(object sender, EventArgs e)
         {
             FrmChoose frm = new FrmChoose();
-            DialogResult res = frm.ShowDialog(); //Yes = File, No = StuckFile, Cancel = Connection
+            DialogResult res = frm.ShowDialog(); //Yes = File, No = StuckFile, Cancel = Connection, OK = Script
             if (res == DialogResult.Yes)
             {
                 OpenFileDialog ofd = new OpenFileDialog();
@@ -136,6 +137,27 @@ namespace MonitorAndStart
                     Properties.Settings.Default.Save();
 
                     Log("Added 'Service: " + f.CurrentService + "," + f.CurrentHours + "' to list, and saved");
+                }
+            }
+            if (res == DialogResult.OK)
+            {
+                OpenFileDialog ofd = new OpenFileDialog();
+                ofd.Filter = "Application|*.exe";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    FrmScript f = new FrmScript();
+                    f.TxtApplication.Text = ofd.FileName;
+                    if (f.ShowDialog() == DialogResult.OK)
+                    {
+                        LstItems.Items.Add("Script:" + f.TxtApplication.Text + "," + f.TxtParameters.Text + "," + f.NUD.Value.ToString() + "," + f.ChkHidden.Checked.ToString());
+
+                        //save items
+                        string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
+                        Properties.Settings.Default.Items = a;
+                        Properties.Settings.Default.Save();
+
+                        Log("Added 'Script:" + ofd.FileName + "' to list, and saved");
+                    }
                 }
             }
 
@@ -320,6 +342,37 @@ namespace MonitorAndStart
                         }
                     }
                 }
+                else if (file.StartsWith("Script:"))
+                {
+                    string line = file.Remove(0, 7);
+                    string filename = line.Split(',')[0];
+                    string par = line.Split(',')[1];
+                    int hours = Convert.ToInt32(line.Split(',')[2]);
+                    ProcessWindowStyle ws = (line.Split(',')[3] == "True" ? ProcessWindowStyle.Hidden : ProcessWindowStyle.Normal);
+
+                    Log($"Checking Script: {filename}");
+
+                    if (!scripts.ContainsKey(filename))
+                        scripts.Add(filename, DateTime.Now.AddHours(hours));
+
+                    if (scripts[filename].Day == DateTime.Now.Day && scripts[filename].Hour == DateTime.Now.Hour)
+                    {
+                        try
+                        {
+                            Process p = new Process();
+                            p.StartInfo.FileName = filename;
+                            p.StartInfo.Arguments = par;
+                            p.StartInfo.WorkingDirectory = Path.GetDirectoryName(filename);
+                            p.StartInfo.WindowStyle = ws;
+                            p.Start();
+                            Log("'" + filename + "' has been started");
+                        }
+                        catch (Exception ex)
+                        {
+                            Log("Error starting '" + filename + "'. Message: " + ex.Message);
+                        }
+                    }
+                }
             }
         }
 
@@ -454,7 +507,7 @@ namespace MonitorAndStart
                     f.ChkRestart.Checked = Convert.ToBoolean(txt.Split(',')[2].ToString());
                     if (f.ShowDialog() == DialogResult.OK)
                     {
-                        LstItems.Items[index] = f.TxtApplication.Text + "," + f.TxtParameters.Text + "," + f.ChkRestart.Checked.ToString();
+                        LstItems.Items[index] = "File:" + f.TxtApplication.Text + "," + f.TxtParameters.Text + "," + f.ChkRestart.Checked.ToString();
 
                         //save items
                         string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
@@ -515,6 +568,26 @@ namespace MonitorAndStart
                         Properties.Settings.Default.Save();
 
                         Log("Changed 'Service:" + f.CurrentHours + "," + f.CurrentService + "', and saved");
+                    }
+                }
+                else if (txt.StartsWith("Script:"))
+                {
+                    txt = txt.Remove(0, 5);
+                    FrmScript f = new FrmScript();
+                    f.TxtApplication.Text = txt.Split(',')[0];
+                    f.TxtParameters.Text = txt.Split(',')[1];
+                    f.NUD.Value = Convert.ToInt32(txt.Split(',')[2]);
+                    f.ChkHidden.Checked = Convert.ToBoolean(txt.Split(',')[3]);
+                    if (f.ShowDialog() == DialogResult.OK)
+                    {
+                        LstItems.Items[index] = "Script:" + f.TxtApplication.Text + "," + f.TxtParameters.Text + "," + f.NUD.Value.ToString() + "," + f.ChkHidden.Checked.ToString();
+
+                        //save items
+                        string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
+                        Properties.Settings.Default.Items = a;
+                        Properties.Settings.Default.Save();
+
+                        Log("Changed '" + f.TxtApplication.Text + "', and saved");
                     }
                 }
             }

@@ -68,6 +68,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FrmScript.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmScript.Designer.cs">
+      <DependentUpon>FrmScript.cs</DependentUpon>
+    </Compile>
     <Compile Include="FrmApplication.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -112,6 +118,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Settings.cs" />
+    <EmbeddedResource Include="FrmScript.resx">
+      <DependentUpon>FrmScript.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FrmApplication.resx">
       <DependentUpon>FrmApplication.cs</DependentUpon>
     </EmbeddedResource>

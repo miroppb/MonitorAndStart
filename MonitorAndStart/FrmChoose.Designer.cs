@@ -32,6 +32,7 @@
             this.BtnConnection = new System.Windows.Forms.Button();
             this.BtnStuck = new System.Windows.Forms.Button();
             this.BtnService = new System.Windows.Forms.Button();
+            this.BtnScript = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // BtnFile
@@ -66,7 +67,7 @@
             // 
             // BtnService
             // 
-            this.BtnService.Location = new System.Drawing.Point(341, 12);
+            this.BtnService.Location = new System.Drawing.Point(68, 41);
             this.BtnService.Name = "BtnService";
             this.BtnService.Size = new System.Drawing.Size(75, 23);
             this.BtnService.TabIndex = 3;
@@ -74,12 +75,23 @@
             this.BtnService.UseVisualStyleBackColor = true;
             this.BtnService.Click += new System.EventHandler(this.BtnService_Click);
             // 
+            // BtnScript
+            // 
+            this.BtnScript.Location = new System.Drawing.Point(181, 40);
+            this.BtnScript.Name = "BtnScript";
+            this.BtnScript.Size = new System.Drawing.Size(75, 23);
+            this.BtnScript.TabIndex = 4;
+            this.BtnScript.Text = "Script";
+            this.BtnScript.UseVisualStyleBackColor = true;
+            this.BtnScript.Click += new System.EventHandler(this.BtnScript_Click);
+            // 
             // FrmChoose
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(428, 53);
+            this.ClientSize = new System.Drawing.Size(325, 73);
             this.ControlBox = false;
+            this.Controls.Add(this.BtnScript);
             this.Controls.Add(this.BtnService);
             this.Controls.Add(this.BtnStuck);
             this.Controls.Add(this.BtnConnection);
@@ -100,5 +112,6 @@
         private System.Windows.Forms.Button BtnConnection;
         private System.Windows.Forms.Button BtnStuck;
         private System.Windows.Forms.Button BtnService;
+        private System.Windows.Forms.Button BtnScript;
     }
 }
