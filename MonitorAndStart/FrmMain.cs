@@ -505,7 +505,7 @@ namespace MonitorAndStart
         private void LstItems_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             int index = LstItems.IndexFromPoint(e.Location);
-            if (index != System.Windows.Forms.ListBox.NoMatches)
+            if (index != ListBox.NoMatches)
             {
                 string txt = LstItems.Items[index].ToString();
                 if (txt.StartsWith("File:"))
@@ -582,7 +582,7 @@ namespace MonitorAndStart
                 }
                 else if (txt.StartsWith("Script:"))
                 {
-                    txt = txt.Remove(0, 5);
+                    txt = txt.Remove(0, 7);
                     FrmScript f = new FrmScript();
                     f.TxtApplication.Text = txt.Split(',')[0];
                     f.TxtParameters.Text = txt.Split(',')[1];
