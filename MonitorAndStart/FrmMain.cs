@@ -149,14 +149,14 @@ namespace MonitorAndStart
                     f.TxtApplication.Text = ofd.FileName;
                     if (f.ShowDialog() == DialogResult.OK)
                     {
-                        LstItems.Items.Add("Script:" + f.TxtApplication.Text + "," + f.TxtParameters.Text + "," + f.NUD.Value.ToString() + "," + f.ChkHidden.Checked.ToString());
+                        LstItems.Items.Add($"Script:{f.TxtApplication.Text},{f.TxtParameters.Text},{f.NUD.Value.ToString()},{f.ChkHidden.Checked.ToString()},{DateTime.Now.ToString()}");
 
                         //save items
                         string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
                         Properties.Settings.Default.Items = a;
                         Properties.Settings.Default.Save();
 
-                        Log("Added 'Script:" + ofd.FileName + "' to list, and saved");
+                        Log($"Added 'Script:{ofd.FileName}' to list, and saved");
                     }
                 }
             }
@@ -348,12 +348,13 @@ namespace MonitorAndStart
                     string filename = line.Split(',')[0];
                     string par = line.Split(',')[1];
                     int hours = Convert.ToInt32(line.Split(',')[2]);
+                    DateTime dt = Convert.ToDateTime(line.Split(',')[4]);
                     ProcessWindowStyle ws = (line.Split(',')[3] == "True" ? ProcessWindowStyle.Hidden : ProcessWindowStyle.Normal);
 
                     Log($"Checking Script: {filename}");
 
                     if (!scripts.ContainsKey(filename))
-                        scripts.Add(filename, DateTime.Now.AddHours(hours));
+                        scripts.Add(filename, dt.AddHours(hours));
 
                     if (scripts[filename].Day == DateTime.Now.Day && scripts[filename].Hour == DateTime.Now.Hour)
                     {
@@ -371,10 +372,13 @@ namespace MonitorAndStart
 
                             p.BeginOutputReadLine();
                             p.WaitForExit();
+
+                            scripts[filename].AddHours(hours);
                         }
                         catch (Exception ex)
                         {
                             Log("Error starting '" + filename + "'. Message: " + ex.Message);
+                            scripts[filename].AddHours(1);
                         }
                     }
                 }
@@ -590,7 +594,7 @@ namespace MonitorAndStart
                     f.ChkHidden.Checked = Convert.ToBoolean(txt.Split(',')[3]);
                     if (f.ShowDialog() == DialogResult.OK)
                     {
-                        LstItems.Items[index] = "Script:" + f.TxtApplication.Text + "," + f.TxtParameters.Text + "," + f.NUD.Value.ToString() + "," + f.ChkHidden.Checked.ToString();
+                        LstItems.Items[index] = $"Script:{f.TxtApplication.Text},{f.TxtParameters.Text},{f.NUD.Value.ToString()},{f.ChkHidden.Checked.ToString()},{DateTime.Now.ToString()}";
 
                         //save items
                         string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
