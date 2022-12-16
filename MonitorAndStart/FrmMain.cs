@@ -480,8 +480,8 @@ namespace MonitorAndStart
 
         private void FrmMain_Resize(object sender, EventArgs e)
         {
-            if (this.WindowState == FormWindowState.Minimized)
-                this.Hide();
+            if (WindowState == FormWindowState.Minimized)
+                Close();
         }
 
         private void FrmMain_Load(object sender, EventArgs e)
@@ -489,11 +489,20 @@ namespace MonitorAndStart
             if (die)
                 Application.Exit();
             if (LstItems.Items.Count > 0)
-                this.WindowState = FormWindowState.Minimized;
+            {
+                WindowState = FormWindowState.Minimized;
+                HideMe();
+            }
 
             ChkAdmin.Checked = Properties.Settings.Default.Admin;
 
             starting = false;
+        }
+
+        private async void HideMe()
+        {
+            await Task.Delay(500);
+            Close();
         }
 
         private void startToolStripMenuItem_Click(object sender, EventArgs e)
