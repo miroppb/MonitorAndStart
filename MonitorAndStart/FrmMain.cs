@@ -374,6 +374,7 @@ namespace MonitorAndStart
                             p.WaitForExit();
 
                             scripts[filename].AddHours(hours);
+                            LstItems.Items[LstItems.Items.IndexOf(file)] = $"Script:{filename},{par},{hours},{line.Split(',')[3]},{DateTime.Now.ToString()}";
                         }
                         catch (Exception ex)
                         {
