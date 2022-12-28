@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -638,6 +639,44 @@ namespace MonitorAndStart
 
                 if (ChkCheckOnStart.Checked)
                     timer1_Tick(null, null);
+            }
+        }
+
+        int hoveredIndex = -1;
+
+        private void LstItems_MouseMove(object sender, MouseEventArgs e)
+        {
+            // See which row is currently under the mouse:
+            int newHoveredIndex = LstItems.IndexFromPoint(e.Location);
+            Console.WriteLine(newHoveredIndex.ToString());
+
+            // If the row has changed since last moving the mouse:
+            if (hoveredIndex != newHoveredIndex)
+            {
+                // Change the variable for the next time we move the mouse:
+                hoveredIndex = newHoveredIndex;
+
+                // If over a row showing data (rather than blank space):
+                if (hoveredIndex > -1)
+                {
+                    string hovered = LstItems.Items[hoveredIndex].ToString();
+                    switch (hovered.Split(':')[0])
+                    {
+                        case "Script":
+                            string line = hovered.Remove(0, 7);
+                            int hours = Convert.ToInt32(line.Split(',')[2]);
+                            DateTime dt = Convert.ToDateTime(line.Split(',')[4]);
+                            toolTip1.Active = false;
+                            toolTip1.SetToolTip(LstItems, $"Running on {dt.AddHours(hours).ToString("MM/dd/yyyy hhtt")}");
+                            toolTip1.Active = true;
+                            break;
+                        default:
+                            toolTip1.Active = false;
+                            toolTip1.SetToolTip(LstItems, "");
+                            toolTip1.Active = true;
+                            break;
+                    }
+                }
             }
         }
     }

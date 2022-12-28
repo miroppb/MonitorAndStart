@@ -42,6 +42,7 @@
             this.BtnRem = new System.Windows.Forms.Button();
             this.ChkAdmin = new System.Windows.Forms.CheckBox();
             this.ChkCheckOnStart = new System.Windows.Forms.CheckBox();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -84,6 +85,7 @@
             this.LstItems.Size = new System.Drawing.Size(404, 202);
             this.LstItems.TabIndex = 3;
             this.LstItems.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.LstItems_MouseDoubleClick);
+            this.LstItems.MouseMove += new System.Windows.Forms.MouseEventHandler(this.LstItems_MouseMove);
             // 
             // notifyIcon1
             // 
@@ -192,6 +194,7 @@
         private System.Windows.Forms.ToolStripMenuItem startToolStripMenuItem;
         public System.Windows.Forms.CheckBox ChkAdmin;
         private System.Windows.Forms.CheckBox ChkCheckOnStart;
+        private System.Windows.Forms.ToolTip toolTip1;
     }
 }
 
