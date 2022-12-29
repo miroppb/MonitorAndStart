@@ -150,7 +150,7 @@ namespace MonitorAndStart
                     f.TxtApplication.Text = ofd.FileName;
                     if (f.ShowDialog() == DialogResult.OK)
                     {
-                        LstItems.Items.Add($"Script:{f.TxtApplication.Text},{f.TxtParameters.Text},{f.NUD.Value.ToString()},{f.ChkHidden.Checked.ToString()},{DateTime.Now.ToString()}");
+                        LstItems.Items.Add($"Script:{f.TxtApplication.Text},{f.TxtParameters.Text},{f.NUD.Value.ToString()},{f.ChkHidden.Checked.ToString()},{f.dtpStartFrom.Value.ToString("MM/dd/yyyy hh:mm tt")}");
 
                         //save items
                         string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
@@ -603,9 +603,10 @@ namespace MonitorAndStart
                     f.TxtParameters.Text = txt.Split(',')[1];
                     f.NUD.Value = Convert.ToInt32(txt.Split(',')[2]);
                     f.ChkHidden.Checked = Convert.ToBoolean(txt.Split(',')[3]);
+                    f.dtpStartFrom.Value = Convert.ToDateTime(txt.Split(',')[4]);
                     if (f.ShowDialog() == DialogResult.OK)
                     {
-                        LstItems.Items[index] = $"Script:{f.TxtApplication.Text},{f.TxtParameters.Text},{f.NUD.Value.ToString()},{f.ChkHidden.Checked.ToString()},{DateTime.Now.ToString()}";
+                        LstItems.Items[index] = $"Script:{f.TxtApplication.Text},{f.TxtParameters.Text},{f.NUD.Value.ToString()},{f.ChkHidden.Checked.ToString()},{f.dtpStartFrom.Value.ToString("MM/dd/yyyy hh:mm tt")}";
 
                         //save items
                         string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
