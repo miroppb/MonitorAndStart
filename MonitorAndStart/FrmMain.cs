@@ -182,7 +182,8 @@ namespace MonitorAndStart
 
         private async void timer1_Tick(object sender, EventArgs e)
         {
-            foreach (string file in LstItems.Items)
+            List<string> items = LstItems.Items.OfType<string>().ToList();
+            foreach (string file in items)
             {
                 if (file.StartsWith("File:"))
                 {
@@ -357,7 +358,8 @@ namespace MonitorAndStart
                     if (!scripts.ContainsKey(filename))
                         scripts.Add(filename, dt.AddHours(hours));
 
-                    if (scripts[filename].Day == DateTime.Now.Day && scripts[filename].Hour == DateTime.Now.Hour)
+                    Log($"{scripts[filename]} -- {DateTime.Now.ToString()}");
+                    if (scripts[filename] <= DateTime.Now)
                     {
                         try
                         {
@@ -367,6 +369,7 @@ namespace MonitorAndStart
                             p.StartInfo.WorkingDirectory = Path.GetDirectoryName(filename);
                             p.StartInfo.WindowStyle = ws;
                             p.StartInfo.RedirectStandardOutput = true;
+                            p.StartInfo.UseShellExecute = false;
                             p.OutputDataReceived += P_OutputDataReceived;
                             p.Start();
                             Log("'" + filename + "' has been started");
@@ -374,8 +377,9 @@ namespace MonitorAndStart
                             p.BeginOutputReadLine();
                             p.WaitForExit();
 
-                            scripts[filename].AddHours(hours);
-                            LstItems.Items[LstItems.Items.IndexOf(file)] = $"Script:{filename},{par},{hours},{line.Split(',')[3]},{DateTime.Now.ToString()}";
+                            scripts[filename] = DateTime.Now.AddHours(hours);
+                            LstItems.Items[LstItems.Items.IndexOf(file)] = $"Script:{filename},{par},{hours},{line.Split(',')[3]},{DateTime.Now}";
+                            Log($"New Time: {scripts[filename]} -- {DateTime.Now}");
                         }
                         catch (Exception ex)
                         {
@@ -668,7 +672,7 @@ namespace MonitorAndStart
                             int hours = Convert.ToInt32(line.Split(',')[2]);
                             DateTime dt = Convert.ToDateTime(line.Split(',')[4]);
                             toolTip1.Active = false;
-                            toolTip1.SetToolTip(LstItems, $"Running on {dt.AddHours(hours).ToString("MM/dd/yyyy hhtt")}");
+                            toolTip1.SetToolTip(LstItems, $"Running on {dt.AddHours(hours).ToString("MM/dd/yyyy htt")}");
                             toolTip1.Active = true;
                             break;
                         default:
