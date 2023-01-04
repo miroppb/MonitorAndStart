@@ -358,7 +358,7 @@ namespace MonitorAndStart
                     if (!scripts.ContainsKey(filename))
                         scripts.Add(filename, dt.AddHours(hours));
 
-                    Log($"{scripts[filename]} -- {DateTime.Now.ToString()}");
+                    Log($"Date to run: {scripts[filename]} -- Current date: {DateTime.Now}");
                     if (scripts[filename] <= DateTime.Now)
                     {
                         try
@@ -379,12 +379,13 @@ namespace MonitorAndStart
 
                             scripts[filename] = DateTime.Now.AddHours(hours);
                             LstItems.Items[LstItems.Items.IndexOf(file)] = $"Script:{filename},{par},{hours},{line.Split(',')[3]},{DateTime.Now}";
-                            Log($"New Time: {scripts[filename]} -- {DateTime.Now}");
+                            Save();
+                            Log($"New Time: {scripts[filename]} -- Current time: {DateTime.Now}");
                         }
                         catch (Exception ex)
                         {
                             Log("Error starting '" + filename + "'. Message: " + ex.Message);
-                            scripts[filename].AddHours(1);
+                            scripts[filename] = DateTime.Now.AddHours(hours);
                         }
                     }
                 }
@@ -537,11 +538,7 @@ namespace MonitorAndStart
                     if (f.ShowDialog() == DialogResult.OK)
                     {
                         LstItems.Items[index] = "File:" + f.TxtApplication.Text + "," + f.TxtParameters.Text + "," + f.ChkRestart.Checked.ToString();
-
-                        //save items
-                        string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
-                        Properties.Settings.Default.Items = a;
-                        Properties.Settings.Default.Save();
+                        Save();
 
                         Log("Changed '" + f.TxtApplication.Text + "', and saved");
                     }
@@ -556,11 +553,7 @@ namespace MonitorAndStart
                     if (f.ShowDialog() == DialogResult.OK)
                     {
                         LstItems.Items[index] = "Stuck:" + f.TxtFile.Text + "," + f.NUD.Value + "," + f.CmbDuration.SelectedItem.ToString();
-
-                        //save items
-                        string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
-                        Properties.Settings.Default.Items = a;
-                        Properties.Settings.Default.Save();
+                        Save();
 
                         Log("Changed 'Stuck:" + f.TxtFile.Text + "," + f.NUD.Value + "," + f.CmbDuration.SelectedItem.ToString() + "', and saved");
                     }
@@ -574,11 +567,7 @@ namespace MonitorAndStart
                     if (f.ShowDialog() == DialogResult.OK)
                     {
                         LstItems.Items[index] = "Connection:" + f.TxtFirst.Text + "," + f.TxtSecond.Text;
-
-                        //save items
-                        string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
-                        Properties.Settings.Default.Items = a;
-                        Properties.Settings.Default.Save();
+                        Save();
 
                         Log("Changed 'Connection:" + f.TxtFirst.Text + "," + f.TxtSecond.Text + "', and saved");
                     }
@@ -590,11 +579,7 @@ namespace MonitorAndStart
                     if (f.ShowDialog() == DialogResult.OK)
                     {
                         LstItems.Items[index] = "Service:" + f.CurrentHours + "," + f.CurrentService;
-
-                        //save items
-                        string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
-                        Properties.Settings.Default.Items = a;
-                        Properties.Settings.Default.Save();
+                        Save();
 
                         Log("Changed 'Service:" + f.CurrentHours + "," + f.CurrentService + "', and saved");
                     }
@@ -610,17 +595,23 @@ namespace MonitorAndStart
                     f.dtpStartFrom.Value = Convert.ToDateTime(txt.Split(',')[4]);
                     if (f.ShowDialog() == DialogResult.OK)
                     {
-                        LstItems.Items[index] = $"Script:{f.TxtApplication.Text},{f.TxtParameters.Text},{f.NUD.Value.ToString()},{f.ChkHidden.Checked.ToString()},{f.dtpStartFrom.Value.ToString("MM/dd/yyyy hh:mm tt")}";
+                        LstItems.Items[index] = $"Script:{f.TxtApplication.Text},{f.TxtParameters.Text},{f.NUD.Value},{f.ChkHidden.Checked},{f.dtpStartFrom.Value.ToString("MM/dd/yyyy hh:mm tt")}";
+                        Save();
 
-                        //save items
-                        string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
-                        Properties.Settings.Default.Items = a;
-                        Properties.Settings.Default.Save();
+                        scripts[f.TxtApplication.Text] = f.dtpStartFrom.Value;
 
                         Log("Changed '" + f.TxtApplication.Text + "', and saved");
                     }
                 }
             }
+        }
+
+        private void Save()
+        {
+            //save items
+            string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
+            Properties.Settings.Default.Items = a;
+            Properties.Settings.Default.Save();
         }
 
         private void ChkAdmin_CheckedChanged(object sender, EventArgs e)
