@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -83,11 +82,7 @@ namespace MonitorAndStart
                     if (f.ShowDialog() == DialogResult.OK)
                     {
                         LstItems.Items.Add("File:" + f.TxtApplication.Text + "," + f.TxtParameters.Text + "," + f.ChkRestart.Checked.ToString());
-
-                        //save items
-                        string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
-                        Properties.Settings.Default.Items = a;
-                        Properties.Settings.Default.Save();
+                        Save();
 
                         Log("Added 'File:" + ofd.FileName + "' to list, and saved");
                     }
@@ -99,11 +94,7 @@ namespace MonitorAndStart
                 if (f.ShowDialog() == DialogResult.OK)
                 {
                     LstItems.Items.Add("Stuck:" + f.TxtFile.Text + "," + f.NUD.Value + "," + f.CmbDuration.SelectedItem.ToString());
-
-                    //save items
-                    string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
-                    Properties.Settings.Default.Items = a;
-                    Properties.Settings.Default.Save();
+                    Save();
 
                     Log("Added 'Stuck:" + f.TxtFile.Text + "," + f.NUD.Value + "," + f.CmbDuration.SelectedItem.ToString() + "' to list, and saved");
                 }
@@ -114,11 +105,7 @@ namespace MonitorAndStart
                 if (f.ShowDialog() == DialogResult.OK)
                 {
                     LstItems.Items.Add("Connection:" + f.TxtFirst.Text + "," + f.TxtSecond.Text);
-
-                    //save items
-                    string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
-                    Properties.Settings.Default.Items = a;
-                    Properties.Settings.Default.Save();
+                    Save();
 
                     Log("Added 'Connection: " + f.TxtFirst.Text + ", " + f.TxtSecond.Text + "' to list, and saved");
                 }
@@ -131,11 +118,7 @@ namespace MonitorAndStart
                 {
                     LstItems.Items.Add("Service:" + f.CurrentService + "," + f.CurrentHours);
                     services.Add(f.CurrentService, DateTime.Now.AddHours(f.CurrentHours));
-
-                    //save items
-                    string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
-                    Properties.Settings.Default.Items = a;
-                    Properties.Settings.Default.Save();
+                    Save();
 
                     Log("Added 'Service: " + f.CurrentService + "," + f.CurrentHours + "' to list, and saved");
                 }
@@ -151,11 +134,7 @@ namespace MonitorAndStart
                     if (f.ShowDialog() == DialogResult.OK)
                     {
                         LstItems.Items.Add($"Script:{f.TxtApplication.Text},{f.TxtParameters.Text},{f.NUD.Value.ToString()},{f.ChkHidden.Checked.ToString()},{f.dtpStartFrom.Value.ToString("MM/dd/yyyy hh:mm tt")}");
-
-                        //save items
-                        string a = String.Join(";", LstItems.Items.Cast<string>().ToArray());
-                        Properties.Settings.Default.Items = a;
-                        Properties.Settings.Default.Save();
+                        Save();
 
                         Log($"Added 'Script:{ofd.FileName}' to list, and saved");
                     }
@@ -359,7 +338,7 @@ namespace MonitorAndStart
                         scripts.Add(filename, dt.AddHours(hours));
 
                     Log($"Date to run: {scripts[filename]} -- Current date: {DateTime.Now}");
-                    if (scripts[filename] <= DateTime.Now)
+                    if ((scripts[filename] - DateTime.Now).TotalHours <= 0)
                     {
                         try
                         {
