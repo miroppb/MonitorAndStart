@@ -330,7 +330,7 @@ namespace MonitorAndStart
                     string par = line.Split(',')[1];
                     int hours = Convert.ToInt32(line.Split(',')[2]);
                     DateTime dt = Convert.ToDateTime(line.Split(',')[4]);
-                    ProcessWindowStyle ws = (line.Split(',')[3] == "True" ? ProcessWindowStyle.Hidden : ProcessWindowStyle.Normal);
+                    ProcessWindowStyle ws = (line.Split(',')[3] == "True" ? ProcessWindowStyle.Minimized : ProcessWindowStyle.Normal);
 
                     Log($"Checking Script: {filename}");
 
@@ -338,7 +338,7 @@ namespace MonitorAndStart
                         scripts.Add(filename, dt.AddHours(hours));
 
                     Log($"Date to run: {scripts[filename]} -- Current date: {DateTime.Now}");
-                    if ((scripts[filename] - DateTime.Now).TotalHours <= 0)
+                    if (scripts[filename].ToString("MM/dd/yyyy htt") == DateTime.Now.ToString("MM/dd/yyyy htt") || scripts[filename] <= DateTime.Now)
                     {
                         try
                         {
@@ -347,6 +347,8 @@ namespace MonitorAndStart
                             p.StartInfo.Arguments = par;
                             p.StartInfo.WorkingDirectory = Path.GetDirectoryName(filename);
                             p.StartInfo.WindowStyle = ws;
+                            if (ws == ProcessWindowStyle.Hidden)
+                                p.StartInfo.CreateNoWindow = true;
                             p.StartInfo.RedirectStandardOutput = true;
                             p.StartInfo.UseShellExecute = false;
                             p.OutputDataReceived += P_OutputDataReceived;
@@ -355,6 +357,7 @@ namespace MonitorAndStart
 
                             p.BeginOutputReadLine();
                             p.WaitForExit();
+                            p.Dispose();
 
                             scripts[filename] = DateTime.Now.AddHours(hours);
                             LstItems.Items[LstItems.Items.IndexOf(file)] = $"Script:{filename},{par},{hours},{line.Split(',')[3]},{DateTime.Now}";
