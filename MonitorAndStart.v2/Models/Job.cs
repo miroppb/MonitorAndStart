@@ -1,0 +1,25 @@
+﻿using MonitorAndStart.v2.Enums;
+using System;
+using System.Collections.Generic;
+
+namespace MonitorAndStart.v2
+{
+	public abstract class Job
+	{
+		public int Id { get; set; }
+		public abstract int TypeOfJob { get; }
+		public abstract void ExecuteJob();
+
+		public DateTime NextTimeToRun { get; set; }
+
+		public string Name { get; set; } = string.Empty;
+
+		public DateTime LastRun { get; set; } = DateTime.Now;
+
+		public int IntervalInMinutes { get; set; }
+
+		public Intervals Interval { get; set; }
+
+		public bool RunOnStart { get; set; }
+	}
+}
