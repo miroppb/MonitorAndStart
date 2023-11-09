@@ -11,7 +11,6 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Forms;
 using System.Windows.Threading;
 
 namespace MonitorAndStart.v2.ViewModel
@@ -130,8 +129,14 @@ namespace MonitorAndStart.v2.ViewModel
 				Header = "Show"
 			};
 			menuShowWindow.Click += MenuShowWindow_Click;
+			MenuItem menuExit = new MenuItem
+			{
+				Header = "Exit"
+			};
+			menuExit.Click += MenuExit_Click;
 
 			_contextMenu.Items.Add(menuShowWindow);
+			_contextMenu.Items.Add(menuExit);
 
 			tbi = new TaskbarIcon
 			{
@@ -141,6 +146,11 @@ namespace MonitorAndStart.v2.ViewModel
 			};
 
 			SetupTimer();
+		}
+
+		private void MenuExit_Click(object sender, RoutedEventArgs e)
+		{
+			OnClosingRequest();
 		}
 
 		private void MenuShowWindow_Click(object sender, RoutedEventArgs e)

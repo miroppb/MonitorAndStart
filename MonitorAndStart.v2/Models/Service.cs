@@ -33,14 +33,20 @@ namespace MonitorAndStart.v2
 				libmiroppb.Log($"Trying to restart {ServiceName}.");
 
 				ServiceController sc = new(ServiceName);
-				sc.Stop();
+				try
+				{
+					sc.Stop();
+				} catch { }
 
 				await Task.Delay(1000);
-				sc.Start();
-
-				libmiroppb.Log($"{ServiceName} restarted successfully");
-				LastRun = DateTime.Now;
-				NextTimeToRun = DateTime.Now.AddMinutes(IntervalInMinutes);
+				try
+				{
+					sc.Start();
+					libmiroppb.Log($"{ServiceName} restarted successfully");
+					LastRun = DateTime.Now;
+					NextTimeToRun = DateTime.Now.AddMinutes(IntervalInMinutes);
+				}
+				catch { }
 			}
 			catch
 			{
