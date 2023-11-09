@@ -190,11 +190,17 @@ namespace MonitorAndStart.v2.ViewModel
 					if (job.NextTimeToRun <= DateTime.Now)
 					{
 						job.ExecuteJob();
+						job.LastRun = DateTime.Now;
+						job.NextTimeToRun = DateTime.Now.AddMinutes(job.IntervalInMinutes);
+
 						_mainDataProvider.UpdateRecord(job);
 					}
 					else if (start & job.RunOnStart)
 					{
 						job.ExecuteJob();
+						job.LastRun = DateTime.Now;
+						job.NextTimeToRun = DateTime.Now.AddMinutes(job.IntervalInMinutes);
+
 						_mainDataProvider.UpdateRecord(job);
 					}
 				}
