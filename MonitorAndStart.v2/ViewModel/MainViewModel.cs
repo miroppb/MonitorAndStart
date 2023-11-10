@@ -2,6 +2,7 @@
 using miroppb;
 using MonitorAndStart.v2.Command;
 using MonitorAndStart.v2.Data;
+using MonitorAndStart.v2.Enums;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -166,7 +167,8 @@ namespace MonitorAndStart.v2.ViewModel
 		{
 			if (SelectedJob != null)
 			{
-				_mainDataProvider.UpdateRecord(SelectedJob);
+				if (_mainDataProvider.UpdateRecord(SelectedJob))
+					MessageBox.Show("Saved");
 			}
 		}
 
@@ -241,6 +243,7 @@ namespace MonitorAndStart.v2.ViewModel
 			set
 			{
 				_SelectedInterval = value;
+				SelectedJob.Interval = (Intervals)SelectedInterval;
 				RaisePropertyChanged();
 			}
 		}
@@ -335,7 +338,6 @@ namespace MonitorAndStart.v2.ViewModel
 				RaisePropertyChanged();
 			}
 		}
-
 
 		private string _Var4Text = string.Empty;
 
@@ -480,6 +482,7 @@ namespace MonitorAndStart.v2.ViewModel
 			set
 			{
 				_Interval = value;
+				SelectedJob.IntervalInMinutes = Interval;
 				RaisePropertyChanged();
 			}
 		}
