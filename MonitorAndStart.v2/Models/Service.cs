@@ -43,6 +43,7 @@ namespace MonitorAndStart.v2
 				{
 					sc.Start();
 					libmiroppb.Log($"{ServiceName} restarted successfully");
+
 					LastRun = DateTime.Now;
 					NextTimeToRun = DateTime.Now.AddMinutes(IntervalInMinutes);
 				}

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonitorAndStart.v2
@@ -95,6 +96,7 @@ namespace MonitorAndStart.v2
 			bool isRunning = false;
 
 			Process[] pList = Process.GetProcessesByName(FileName);
+			libmiroppb.Log(pList.Count() + " processes running");
 			try
 			{
 				foreach (Process p in pList)
@@ -107,7 +109,7 @@ namespace MonitorAndStart.v2
 				}
 			}
 			catch (Exception ex) { libmiroppb.Log("Error: " + ex.Message); }
-
+			libmiroppb.Log("Returning: " + isRunning.ToString());
 			return isRunning;
 		}
 	}

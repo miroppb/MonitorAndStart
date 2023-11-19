@@ -167,6 +167,22 @@ namespace MonitorAndStart.v2.ViewModel
 		{
 			if (SelectedJob != null)
 			{
+				switch (SelectedJob.Interval)
+				{
+					case Enums.Intervals.Minutes:
+						SelectedJob.IntervalInMinutes = Interval;
+						break;
+					case Enums.Intervals.Hours:
+						SelectedJob.IntervalInMinutes = Interval * 60;
+						break;
+					case Enums.Intervals.Days:
+						SelectedJob.IntervalInMinutes = Interval * 60 * 24;
+						break;
+					case Enums.Intervals.Weeks:
+						SelectedJob.IntervalInMinutes = Interval * 60 * 24 * 7;
+						break;
+				}
+				SelectedJob.NextTimeToRun = SelectedJob.LastRun.AddMinutes(SelectedJob.IntervalInMinutes);
 				if (_mainDataProvider.UpdateRecord(SelectedJob))
 					MessageBox.Show("Saved");
 			}
@@ -470,6 +486,7 @@ namespace MonitorAndStart.v2.ViewModel
 			set
 			{
 				_RunOnStart = value;
+				SelectedJob.RunOnStart = _RunOnStart;
 				RaisePropertyChanged();
 			}
 		}
@@ -487,7 +504,7 @@ namespace MonitorAndStart.v2.ViewModel
 			}
 		}
 
-		private DateTime? _StartDate = DateTime.Now.AddDays(-2);
+		private DateTime? _StartDate = DateTime.Now;
 
 		public DateTime? StartDate
 		{
@@ -495,6 +512,7 @@ namespace MonitorAndStart.v2.ViewModel
 			set
 			{
 				_StartDate = value;
+				SelectedJob.LastRun = _StartDate!.Value;
 				RaisePropertyChanged();
 			}
 		}

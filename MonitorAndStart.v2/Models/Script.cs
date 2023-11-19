@@ -55,6 +55,7 @@ namespace MonitorAndStart.v2
 					NextTimeToRun = DateTime.Now.AddMinutes(5);
 				else
 				{
+					LastRun = DateTime.Now;
 					NextTimeToRun = DateTime.Now.AddMinutes(IntervalInMinutes);
 				}
 				p.Dispose();

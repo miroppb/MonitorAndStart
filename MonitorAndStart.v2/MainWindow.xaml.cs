@@ -3,6 +3,7 @@ using miroppb;
 using MonitorAndStart.v2.Data;
 using MonitorAndStart.v2.ViewModel;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
@@ -38,6 +39,8 @@ namespace MonitorAndStart.v2
 			await _viewModel.LoadAsync();
 			_viewModel.ExecuteTasks(true);
 			Closing += ScanWindow_Closing;
+			await Task.Delay(1000);
+			Hide();
 		}
 
 		private void TxtVar1_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
