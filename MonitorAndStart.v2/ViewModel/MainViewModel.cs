@@ -10,9 +10,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Threading;
 
 namespace MonitorAndStart.v2.ViewModel
 {
@@ -29,7 +29,8 @@ namespace MonitorAndStart.v2.ViewModel
 
 		private static Window? MainWindow { get; set; }
 
-		private ContextMenu _contextMenu;
+		private readonly ContextMenu _contextMenu;
+		private Timer? _executionTimer;
 
 		protected virtual void RaisePropertyChanged([CallerMemberName] string? propertyName = null)
 		{
@@ -95,16 +96,16 @@ namespace MonitorAndStart.v2.ViewModel
 					switch (SelectedJob.Interval)
 					{
 						case Enums.Intervals.Minutes:
-							Interval = SelectedJob.IntervalInMinutes;
+							IntervalInMinutes = SelectedJob.IntervalInMinutes;
 							break;
 						case Enums.Intervals.Hours:
-							Interval = SelectedJob.IntervalInMinutes / 60;
+							IntervalInMinutes = SelectedJob.IntervalInMinutes / 60;
 							break;
 						case Enums.Intervals.Days:
-							Interval = SelectedJob.IntervalInMinutes / 60 / 24;
+							IntervalInMinutes = SelectedJob.IntervalInMinutes / 60 / 24;
 							break;
 						case Enums.Intervals.Weeks:
-							Interval = SelectedJob.IntervalInMinutes / 60 / 24 / 7;
+							IntervalInMinutes = SelectedJob.IntervalInMinutes / 60 / 24 / 7;
 							break;
 					}
 					RunOnStart = SelectedJob.RunOnStart;
@@ -167,24 +168,29 @@ namespace MonitorAndStart.v2.ViewModel
 		{
 			if (SelectedJob != null)
 			{
-				switch (SelectedJob.Interval)
-				{
-					case Enums.Intervals.Minutes:
-						SelectedJob.IntervalInMinutes = Interval;
-						break;
-					case Enums.Intervals.Hours:
-						SelectedJob.IntervalInMinutes = Interval * 60;
-						break;
-					case Enums.Intervals.Days:
-						SelectedJob.IntervalInMinutes = Interval * 60 * 24;
-						break;
-					case Enums.Intervals.Weeks:
-						SelectedJob.IntervalInMinutes = Interval * 60 * 24 * 7;
-						break;
-				}
+				UpdateIntervalInMinutes();
 				SelectedJob.NextTimeToRun = SelectedJob.LastRun.AddMinutes(SelectedJob.IntervalInMinutes);
 				if (_mainDataProvider.UpdateRecord(SelectedJob))
 					MessageBox.Show("Saved");
+			}
+		}
+
+		private void UpdateIntervalInMinutes()
+		{
+			switch (SelectedJob.Interval)
+			{
+				case Enums.Intervals.Minutes:
+					SelectedJob.IntervalInMinutes = IntervalInMinutes;
+					break;
+				case Enums.Intervals.Hours:
+					SelectedJob.IntervalInMinutes = IntervalInMinutes * 60;
+					break;
+				case Enums.Intervals.Days:
+					SelectedJob.IntervalInMinutes = IntervalInMinutes * 60 * 24;
+					break;
+				case Enums.Intervals.Weeks:
+					SelectedJob.IntervalInMinutes = IntervalInMinutes * 60 * 24 * 7;
+					break;
 			}
 		}
 
@@ -192,12 +198,14 @@ namespace MonitorAndStart.v2.ViewModel
 		{
 			int minutes = 1;
 			libmiroppb.Log($"Setting up the Timer for every {minutes} minutes");
-			DispatcherTimer timer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(minutes) };
-			timer.Tick += delegate
-			{
-				ExecuteTasks(false);
-			};
-			timer.Start();
+			_executionTimer = new Timer(TimeSpan.FromMinutes(minutes));
+			_executionTimer.Elapsed += ExecutionTimer_Elapsed;
+			_executionTimer.Start();
+		}
+
+		private void ExecutionTimer_Elapsed(object? sender, ElapsedEventArgs e)
+		{
+			ExecuteTasks(false);
 		}
 
 		internal async Task LoadAsync()
@@ -491,15 +499,15 @@ namespace MonitorAndStart.v2.ViewModel
 			}
 		}
 
-		private int _Interval;
+		private int _IntervalInMinutes;
 
-		public int Interval
+		public int IntervalInMinutes
 		{
-			get => _Interval;
+			get => _IntervalInMinutes;
 			set
 			{
-				_Interval = value;
-				SelectedJob.IntervalInMinutes = Interval;
+				_IntervalInMinutes = value;
+				UpdateIntervalInMinutes();
 				RaisePropertyChanged();
 			}
 		}

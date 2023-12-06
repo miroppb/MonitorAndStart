@@ -15,15 +15,15 @@ namespace MonitorAndStart.v2
 
 		public Script(string Name, string Filename, string Parameters, bool runAsAdmin, bool runHidden, int IntervalInMinutes, Intervals SelectedInterval, DateTime LastRan, DateTime NextTimeToRun, bool runOnStart)
 		{
-			base.Name = Name;
+			this.Name = Name;
 			this.Filename = Filename;
 			this.Parameters = Parameters;
 			RunAsAdmin = runAsAdmin;
 			RunHidden = runHidden;
-			base.IntervalInMinutes = IntervalInMinutes;
+			this.IntervalInMinutes = IntervalInMinutes;
 			Interval = SelectedInterval;
 			LastRun = LastRan;
-			base.NextTimeToRun = NextTimeToRun;
+			this.NextTimeToRun = NextTimeToRun;
 			RunOnStart = runOnStart;
 		}
 		public override int TypeOfJob => 3;

@@ -12,14 +12,14 @@ namespace MonitorAndStart.v2
 
 		public Stuck(string Name, string filename, int StuckLongerThanMinutes, int IntervalInMinutes, Intervals SelectedInterval, DateTime LastRan, DateTime NextTimeToRun, bool RunOnStart)
 		{
-			base.Name = Name;
+			this.Name = Name;
 			Filename = filename;
 			this.StuckLongerThanMinutes = StuckLongerThanMinutes;
 			this.IntervalInMinutes = IntervalInMinutes;
 			Interval = SelectedInterval;
 			LastRun = LastRan;
-			base.NextTimeToRun = NextTimeToRun;
-			base.RunOnStart = RunOnStart;
+			this.NextTimeToRun = NextTimeToRun;
+			this.RunOnStart = RunOnStart;
 		}
 		public override int TypeOfJob => 2;
 

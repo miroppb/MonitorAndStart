@@ -129,7 +129,7 @@
             <CheckBox IsChecked="{Binding RunOnStart, Mode=TwoWay}" Grid.Column="3"  Grid.Row="5" VerticalAlignment="Center" />
 
             <TextBlock Text="Interval" Grid.Column="0" Grid.Row="6"/>
-            <TextBox x:Name="Interval" Grid.Column="1" Grid.Row="6" Text="{Binding Interval}" Width="60" />
+            <TextBox x:Name="Interval" Grid.Column="1" Grid.Row="6" Text="{Binding IntervalInMinutes}" Width="60" />
             <ComboBox Grid.Column="1" Grid.Row="6" Margin="70,7,10,7" ItemsSource="{Binding Intervals}" SelectedIndex="{Binding SelectedInterval}"/>
 
             <TextBlock Text="Starting From:" Grid.Column="0" Grid.Row="7" />

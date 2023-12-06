@@ -14,13 +14,13 @@ namespace MonitorAndStart.v2
 
 		public Service(string Name, string ServiceName, int IntervalInMinutes, Intervals SelectedInterval, DateTime LastRan, DateTime NextTimeToRun, bool RunOnStart)
 		{
-			base.Name = Name;
+			this.Name = Name;
 			this.ServiceName = ServiceName;
 			this.IntervalInMinutes = IntervalInMinutes;
 			Interval = SelectedInterval;
 			LastRun = LastRan;
-			base.NextTimeToRun = NextTimeToRun;
-			base.RunOnStart = RunOnStart;
+			this.NextTimeToRun = NextTimeToRun;
+			this.RunOnStart = RunOnStart;
 		}
 		public override int TypeOfJob => 1;
 

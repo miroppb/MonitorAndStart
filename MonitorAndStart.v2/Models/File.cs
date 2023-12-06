@@ -33,7 +33,7 @@ namespace MonitorAndStart.v2
 
 		public static List<string> Vars => new() { "Filename", "Parameters", "Restart", "Run as Admin" };
 
-		public async override void ExecuteJob()
+		public override void ExecuteJob()
 		{
 			libmiroppb.Log($"Checking if '{Path.GetFileName(filename)}' is running...");
 			if (!ProgramIsRunning(filename))
@@ -65,7 +65,7 @@ namespace MonitorAndStart.v2
 					if (process.ProcessName == Path.GetFileNameWithoutExtension(filename))
 					{
 						process.CloseMainWindow();
-						await Task.Delay(5000);
+						Task.Delay(5000);
 
 						try
 						{
