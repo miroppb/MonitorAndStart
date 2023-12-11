@@ -64,27 +64,31 @@ namespace MonitorAndStart.v2
 				{
 					if (process.ProcessName == Path.GetFileNameWithoutExtension(filename))
 					{
-						process.CloseMainWindow();
-						Task.Delay(5000);
-
 						try
 						{
-							Process p = new();
-							p.StartInfo.FileName = (runAsAdmin ? Environment.GetFolderPath(Environment.SpecialFolder.Windows) + "explorer.exe" : filename);
-							p.StartInfo.Arguments = (runAsAdmin ? filename + " " : "") + parameters;
-							p.StartInfo.WorkingDirectory = Path.GetDirectoryName(filename);
-							p.StartInfo.Verb = (runAsAdmin ? "runas" : ""); //the secret sauce?
-							p.Start();
-							libmiroppb.Log($"'{Path.GetFileName(filename)}' has been started");
-
-							LastRun = DateTime.Now;
-							NextTimeToRun = DateTime.Now.AddMinutes(IntervalInMinutes);
+							process.CloseMainWindow();
+							Task.Delay(5000);
 						}
-						catch (Exception ex)
-						{
-							libmiroppb.Log($"Error starting '{Path.GetFileName(filename)}'. Message: {ex.Message}");
-						}
+						catch { }
 					}
+				}
+
+				try
+				{
+					Process p = new();
+					p.StartInfo.FileName = (runAsAdmin ? Environment.GetFolderPath(Environment.SpecialFolder.Windows) + "explorer.exe" : filename);
+					p.StartInfo.Arguments = (runAsAdmin ? filename + " " : "") + parameters;
+					p.StartInfo.WorkingDirectory = Path.GetDirectoryName(filename);
+					p.StartInfo.Verb = (runAsAdmin ? "runas" : ""); //the secret sauce?
+					p.Start();
+					libmiroppb.Log($"'{Path.GetFileName(filename)}' has been restarted");
+
+					LastRun = DateTime.Now;
+					NextTimeToRun = DateTime.Now.AddMinutes(IntervalInMinutes);
+				}
+				catch (Exception ex)
+				{
+					libmiroppb.Log($"Error starting '{Path.GetFileName(filename)}'. Message: {ex.Message}");
 				}
 			}
 		}
@@ -96,7 +100,7 @@ namespace MonitorAndStart.v2
 			bool isRunning = false;
 
 			Process[] pList = Process.GetProcessesByName(FileName);
-			libmiroppb.Log(pList.Count() + " processes running");
+			libmiroppb.Log(pList.Length + " processes running");
 			try
 			{
 				foreach (Process p in pList)

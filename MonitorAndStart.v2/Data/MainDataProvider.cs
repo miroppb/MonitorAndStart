@@ -33,7 +33,7 @@ namespace MonitorAndStart.v2.Data
 					{
 						case 0:
 							FileJson fj = JsonConvert.DeserializeObject<FileJson>(tempJob.Json)!;
-							result.Add(new File(tempJob.Name, fj.filename, fj.parameters, fj.runasadmin, fj.restart, tempJob.Intervalinminutes,
+							result.Add(new File(tempJob.Name, fj.filename, fj.parameters, fj.restart, fj.runasadmin, tempJob.Intervalinminutes,
 								tempJob.Selectedinterval, tempJob.Lastrun, tempJob.Nexttimetorun, tempJob.RunOnStart)
 							{
 								Id = tempJob.Id
