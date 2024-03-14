@@ -22,6 +22,7 @@ namespace MonitorAndStart.v2.ViewModel
 
 		public DelegateCommand AddNewJob { get; }
 		public DelegateCommand SaveJob { get; }
+		public DelegateCommand DeleteJob { get; }
 
 		public TaskbarIcon tbi;
 
@@ -49,6 +50,7 @@ namespace MonitorAndStart.v2.ViewModel
 				_SelectedJob = value;
 				if (SelectedJob != null)
 				{
+					IsJobSelected = true;
 					if (SelectedJob is File file)
 					{
 						Var1Text = File.Vars[0];
@@ -113,6 +115,9 @@ namespace MonitorAndStart.v2.ViewModel
 					ShowLastRun = $"Last Run: {SelectedJob.LastRun}";
 					ShowNextRun = $"Next Run: {SelectedJob.NextTimeToRun}";
 				}
+				else
+					IsJobSelected = false;
+
 				RaisePropertyChanged();
 			}
 		}
@@ -122,6 +127,7 @@ namespace MonitorAndStart.v2.ViewModel
 			_mainDataProvider = mainDataProvider;
 			AddNewJob = new DelegateCommand(ExecuteAddNewJob, () => true);
 			SaveJob = new DelegateCommand(ExecuteSaveJob, () => true);
+			DeleteJob = new DelegateCommand(ExecuteDeleteJob, () => true);
 
 			MainWindow = mainWindow;
 			_contextMenu = new ContextMenu();
@@ -172,6 +178,19 @@ namespace MonitorAndStart.v2.ViewModel
 				SelectedJob.NextTimeToRun = SelectedJob.LastRun.AddMinutes(SelectedJob.IntervalInMinutes);
 				if (_mainDataProvider.UpdateRecord(SelectedJob))
 					MessageBox.Show("Saved");
+			}
+		}
+
+		private void ExecuteDeleteJob(object obj)
+		{
+			if (SelectedJob != null)
+			{
+				if (MessageBox.Show($"Delete job {SelectedJob.Name}?", "", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+				{
+					_mainDataProvider.DeleteRecord(SelectedJob);
+					Jobs.Remove(SelectedJob);
+					SelectedJob = Jobs.LastOrDefault()!;
+				}
 			}
 		}
 
@@ -549,5 +568,18 @@ namespace MonitorAndStart.v2.ViewModel
 			}
 		}
 
+
+		private bool _IsJobSelected = false;
+
+		public bool IsJobSelected
+		{
+			get => _IsJobSelected;
+			set
+			{
+				_IsJobSelected = value;
+				RaisePropertyChanged();
+			}
+		}
+			
 	}
 }

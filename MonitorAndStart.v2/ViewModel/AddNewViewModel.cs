@@ -113,16 +113,16 @@ namespace MonitorAndStart.v2.ViewModel
 			switch (SelectedType)
 			{
 				case 0:
-					obj = new File(Name, Var1, Var2, Var3, Var4, minutes, (Enums.Intervals)SelectedInterval, _StartDate, _StartDate.AddMinutes(Interval), RunOnStart);
+					obj = new File(Name, Var1, Var2, Var3, Var4, minutes, (Enums.Intervals)SelectedInterval, _StartDate, _StartDate.AddMinutes(minutes), RunOnStart);
 					break;
 				case 1:
-					obj = new Service(Name, SelectedVar5, minutes, (Enums.Intervals)SelectedInterval, _StartDate, _StartDate.AddMinutes(Interval), RunOnStart);
+					obj = new Service(Name, SelectedVar5, minutes, (Enums.Intervals)SelectedInterval, _StartDate, _StartDate.AddMinutes(minutes), RunOnStart);
 					break;
 				case 2:
-					obj = new Stuck(Name, Var1, int.Parse(Var2), minutes, (Enums.Intervals)SelectedInterval, _StartDate, _StartDate.AddMinutes(Interval), RunOnStart);
+					obj = new Stuck(Name, Var1, int.Parse(Var2), minutes, (Enums.Intervals)SelectedInterval, _StartDate, _StartDate.AddMinutes(minutes), RunOnStart);
 					break;
 				case 3:
-					obj = new Script(Name, Var1, Var2, Var3, Var4, minutes, (Enums.Intervals)SelectedInterval, _StartDate, _StartDate.AddMinutes(Interval), RunOnStart);
+					obj = new Script(Name, Var1, Var2, Var3, Var4, minutes, (Enums.Intervals)SelectedInterval, _StartDate, _StartDate.AddMinutes(minutes), RunOnStart);
 					break;
 			}
 			_vm.InsertNewJob(obj);

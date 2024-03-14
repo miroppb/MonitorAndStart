@@ -52,7 +52,16 @@
                     <RowDefinition Height="20"/>
                 </Grid.RowDefinitions>
 
-                <Button Command="{Binding AddNewJob}" Content="Add New Job" Margin="50, 8" />
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+
+                    <Button Command="{Binding AddNewJob}" Content="Add New Job" Grid.Column="0" Margin="10" />
+                    <Button Command="{Binding DeleteJob}" Content="Delete Job" Grid.Column="1" Margin="10" IsEnabled="{Binding IsJobSelected}" />
+                </Grid>
+                
                 <ListView x:Name="LstJobs" Grid.Row="1" Margin="5,0,5,5" ItemsSource="{Binding Jobs}"
                     SelectedItem="{Binding SelectedJob, Mode=TwoWay}" DisplayMemberPath="Name" SelectionMode="Single"/>
 

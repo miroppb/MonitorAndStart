@@ -14,6 +14,7 @@ namespace MonitorAndStart.v2.Data
 		Task<IEnumerable<Job>?> GetJobsAsync();
 		bool InsertRecord(Job jobs);
 		bool UpdateRecord(Job job);
+		bool DeleteRecord(Job job);
 	}
 
 	public class MainDataProvider : IMainDataProvider
@@ -126,6 +127,13 @@ namespace MonitorAndStart.v2.Data
 			}
 
 			return tempJob;
+		}
+
+		public bool DeleteRecord(Job job)
+		{
+			TempJob tempJob = MapJobToTempJob(job);
+			using MySqlConnection db = Secrets.GetConnectionString();
+			return db.Delete(tempJob);
 		}
 	}
 }
