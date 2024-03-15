@@ -23,6 +23,7 @@ namespace MonitorAndStart.v2.ViewModel
 		public DelegateCommand AddNewJob { get; }
 		public DelegateCommand SaveJob { get; }
 		public DelegateCommand DeleteJob { get; }
+		public DelegateCommand RunJob { get; }
 
 		public TaskbarIcon tbi;
 
@@ -128,6 +129,7 @@ namespace MonitorAndStart.v2.ViewModel
 			AddNewJob = new DelegateCommand(ExecuteAddNewJob, () => true);
 			SaveJob = new DelegateCommand(ExecuteSaveJob, () => true);
 			DeleteJob = new DelegateCommand(ExecuteDeleteJob, () => true);
+			RunJob = new DelegateCommand(ExecuteRunCurrentJob, () => true);
 
 			MainWindow = mainWindow;
 			_contextMenu = new ContextMenu();
@@ -193,6 +195,8 @@ namespace MonitorAndStart.v2.ViewModel
 				}
 			}
 		}
+
+		private void ExecuteRunCurrentJob(object obj) => SelectedJob?.ExecuteJob();
 
 		private void UpdateIntervalInMinutes()
 		{

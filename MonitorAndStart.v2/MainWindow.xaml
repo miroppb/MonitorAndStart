@@ -134,7 +134,7 @@
             <TextBlock Text="{Binding Var5Text}" Grid.Column="0" Grid.Row="2" Visibility="{Binding Var5Visible}"/>
             <ComboBox Grid.Row="2" Grid.Column="1" Margin="5,7,15,7" ItemsSource="{Binding Var5}" SelectedValue="{Binding SelectedVar5}" Visibility="{Binding Var5Visible}"/>
 
-            <TextBlock Text="Run On Start" Grid.Column="2" Grid.Row="5"/>
+            <TextBlock Text="Run On Start" Grid.Column="2" Grid.Row="5" Margin="0 0 5 0"/>
             <CheckBox IsChecked="{Binding RunOnStart, Mode=TwoWay}" Grid.Column="3"  Grid.Row="5" VerticalAlignment="Center" />
 
             <TextBlock Text="Interval" Grid.Column="0" Grid.Row="6"/>
@@ -144,7 +144,16 @@
             <TextBlock Text="Starting From:" Grid.Column="0" Grid.Row="7" />
             <xctk:DateTimePicker HorizontalAlignment="Left" Name="DateTimePicker1" VerticalAlignment="Center" Width="270" Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" Value="{Binding StartDate, Mode=TwoWay}" Margin="5,0,0,0" />
 
-            <Button Content="Save" Command="{Binding SaveJob}" Grid.Column="1" Grid.Row="8" Margin="70, 10" />
+            <Grid Grid.Column="1" Grid.Row="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <Button Content="Save" Command="{Binding SaveJob}" Grid.Column="0" Margin="10" />
+                <Button Content="Run Job" Command="{Binding RunJob}" Grid.Column="1" Margin="10" />
+            </Grid>
+            
         </Grid>
 
     </Grid>

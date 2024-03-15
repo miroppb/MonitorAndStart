@@ -131,9 +131,18 @@ namespace MonitorAndStart.v2.Data
 
 		public bool DeleteRecord(Job job)
 		{
-			TempJob tempJob = MapJobToTempJob(job);
-			using MySqlConnection db = Secrets.GetConnectionString();
-			return db.Delete(tempJob);
+			try
+			{
+				TempJob tempJob = MapJobToTempJob(job);
+				using MySqlConnection db = Secrets.GetConnectionString();
+				db.Delete(tempJob);
+				db.Execute($"ALTER TABLE jobs AUTO_INCREMENT = 0;"); //this will automatically reset to the next available number
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
 		}
 	}
 }
