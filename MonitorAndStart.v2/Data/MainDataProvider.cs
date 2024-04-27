@@ -4,6 +4,7 @@ using miroppb;
 using MonitorAndStart.v2.Models;
 using MySqlConnector;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -26,7 +27,7 @@ namespace MonitorAndStart.v2.Data
 			try
 			{
 				using MySqlConnection db = Secrets.GetConnectionString();
-				IEnumerable<TempJob> temp = await db.QueryAsync<TempJob>($"SELECT * FROM jobs");
+				IEnumerable<TempJob> temp = await db.QueryAsync<TempJob>($"SELECT * FROM jobs WHERE pcname = @MachineName", new { Environment.MachineName });
 				List<Job> result = new();
 				foreach (TempJob tempJob in temp)
 				{
@@ -104,7 +105,7 @@ namespace MonitorAndStart.v2.Data
 
 		private static TempJob MapJobToTempJob(Job job)
 		{
-			TempJob tempJob = new() { Id = job.Id, Name = job.Name, Type = job.TypeOfJob, Intervalinminutes = job.IntervalInMinutes, Selectedinterval = job.Interval, Lastrun = job.LastRun, Nexttimetorun = job.NextTimeToRun, RunOnStart = job.RunOnStart };
+			TempJob tempJob = new() { Id = job.Id, Name = job.Name, Type = job.TypeOfJob, Intervalinminutes = job.IntervalInMinutes, Selectedinterval = job.Interval, Lastrun = job.LastRun, Nexttimetorun = job.NextTimeToRun, RunOnStart = job.RunOnStart, PcName = Environment.MachineName };
 			if (job is File file)
 			{
 				FileJson js = new() { filename = file.filename, parameters = file.parameters, restart = file.restart, runasadmin = file.runAsAdmin };
