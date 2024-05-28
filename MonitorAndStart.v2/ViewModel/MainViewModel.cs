@@ -27,12 +27,13 @@ namespace MonitorAndStart.v2.ViewModel
 
 		public TaskbarIcon tbi;
 
-		public event PropertyChangedEventHandler? PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
 		private static Window? MainWindow { get; set; }
 
 		private readonly ContextMenu _contextMenu;
 		private Timer? _executionTimer;
+		private Timer? _uploadLogsTimer;
 
 		protected virtual void RaisePropertyChanged([CallerMemberName] string? propertyName = null)
 		{
@@ -123,7 +124,7 @@ namespace MonitorAndStart.v2.ViewModel
 			}
 		}
 
-		public MainViewModel(IMainDataProvider mainDataProvider, Window mainWindow)
+		public MainViewModel(IMainDataProvider mainDataProvider, Window mainWindow, bool ShowTbi)
 		{
 			_mainDataProvider = mainDataProvider;
 			AddNewJob = new DelegateCommand(ExecuteAddNewJob, () => true);
@@ -134,12 +135,12 @@ namespace MonitorAndStart.v2.ViewModel
 			MainWindow = mainWindow;
 			_contextMenu = new ContextMenu();
 
-			MenuItem menuShowWindow = new MenuItem
+			MenuItem menuShowWindow = new()
 			{
 				Header = "Show"
 			};
 			menuShowWindow.Click += MenuShowWindow_Click;
-			MenuItem menuExit = new MenuItem
+			MenuItem menuExit = new()
 			{
 				Header = "Exit"
 			};
@@ -152,10 +153,12 @@ namespace MonitorAndStart.v2.ViewModel
 			{
 				Icon = System.Drawing.Icon.ExtractAssociatedIcon("monitor.ico"),
 				ToolTipText = "Monitor And Start",
-				ContextMenu = _contextMenu
+				ContextMenu = _contextMenu,
+				Visibility = ShowTbi ? Visibility.Visible : Visibility.Collapsed
 			};
 
 			SetupTimer();
+			SetupUploadLogsTimer();
 		}
 
 		private void MenuExit_Click(object sender, RoutedEventArgs e)
@@ -226,10 +229,20 @@ namespace MonitorAndStart.v2.ViewModel
 			_executionTimer.Start();
 		}
 
-		private void ExecutionTimer_Elapsed(object? sender, ElapsedEventArgs e)
+		private void ExecutionTimer_Elapsed(object? sender, ElapsedEventArgs e) => ExecuteTasks(false);
+
+		private void SetupUploadLogsTimer()
 		{
-			ExecuteTasks(false);
+			int minutes = 30;
+			libmiroppb.Log($"Setting up uploadLogs timer for every {minutes} minutes");
+			_uploadLogsTimer = new Timer(TimeSpan.FromMinutes(minutes));
+			_uploadLogsTimer.Elapsed += UploadLogsTimer_Elapsed; ;
+			_uploadLogsTimer.Start();
 		}
+
+		private void UploadLogsTimer_Elapsed(object? sender, ElapsedEventArgs e) => UploadLogs(true);
+
+		private static void UploadLogs(bool deleteAfter) => libmiroppb.UploadLog(Secrets.GetConnectionString().ConnectionString, "logs", deleteAfter);
 
 		internal async Task LoadAsync()
 		{
