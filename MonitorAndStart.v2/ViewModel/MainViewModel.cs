@@ -242,7 +242,7 @@ namespace MonitorAndStart.v2.ViewModel
 
 		private void UploadLogsTimer_Elapsed(object? sender, ElapsedEventArgs e) => UploadLogs(true);
 
-		private static void UploadLogs(bool deleteAfter) => libmiroppb.UploadLog(Secrets.GetConnectionString().ConnectionString, "logs", deleteAfter);
+		private static void UploadLogs(bool deleteAfter) => libmiroppb.UploadLog(Secrets.GetConnectionString().ConnectionString, deleteAfter);
 
 		internal async Task LoadAsync()
 		{

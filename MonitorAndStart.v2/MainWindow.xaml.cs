@@ -58,7 +58,7 @@ namespace MonitorAndStart.v2
 			{
 				OpenFileDialog ofd = new()
 				{
-					Filter = "Application File|*.exe"
+					Filter = "Application File|*.exe|Batch File|*.bat"
 				};
 				if (ofd.ShowDialog() == true)
 				{

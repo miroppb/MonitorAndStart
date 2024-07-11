@@ -28,8 +28,10 @@ namespace MonitorAndStart.v2
 		{
 			if (_addvm.SelectedType == 0 | _addvm.SelectedType == 3)
 			{
-				OpenFileDialog ofd = new OpenFileDialog();
-				ofd.Filter = "Application File|*.exe";
+				OpenFileDialog ofd = new()
+				{
+					Filter = "Application File|*.exe|Batch File|*.bat"
+				};
 				if (ofd.ShowDialog() == true)
 				{
 					_addvm.Var1 = ofd.FileName;
@@ -37,8 +39,10 @@ namespace MonitorAndStart.v2
 			}
 			else if (_addvm.SelectedType == 2)
 			{
-				OpenFileDialog ofd = new OpenFileDialog();
-				ofd.Filter = "Any File|*.*";
+				OpenFileDialog ofd = new()
+				{
+					Filter = "Any File|*.*"
+				};
 				if (ofd.ShowDialog() == true)
 				{
 					_addvm.Var1 = ofd.FileName;
