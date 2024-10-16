@@ -42,8 +42,8 @@ namespace MonitorAndStart.v2
 				try
 				{
 					Process p = new();
-					p.StartInfo.FileName = runAsAdmin ? filename : Environment.GetFolderPath(Environment.SpecialFolder.Windows) + "\\explorer.exe";
-					p.StartInfo.Arguments = (runAsAdmin ? "" : filename + " ") + parameters;
+					p.StartInfo.FileName = filename;
+					p.StartInfo.Arguments = parameters;
 					p.StartInfo.WorkingDirectory = Path.GetDirectoryName(filename);
 					p.StartInfo.Verb = runAsAdmin ? "runas" : ""; //the secret sauce?
 					p.Start();
@@ -76,11 +76,11 @@ namespace MonitorAndStart.v2
 				try
 				{
 					Process p = new();
-					p.StartInfo.FileName = (runAsAdmin ? Environment.GetFolderPath(Environment.SpecialFolder.Windows) + "explorer.exe" : filename);
-					p.StartInfo.Arguments = (runAsAdmin ? filename + " " : "") + parameters;
-					p.StartInfo.WorkingDirectory = Path.GetDirectoryName(filename);
-					p.StartInfo.Verb = (runAsAdmin ? "runas" : ""); //the secret sauce?
-					p.Start();
+                    p.StartInfo.FileName = filename;
+                    p.StartInfo.Arguments = parameters;
+                    p.StartInfo.WorkingDirectory = Path.GetDirectoryName(filename);
+                    p.StartInfo.Verb = runAsAdmin ? "runas" : ""; //the secret sauce?
+                    p.Start();
 					libmiroppb.Log($"'{Path.GetFileName(filename)}' has been restarted");
 
 					LastRun = DateTime.Now;

@@ -1,4 +1,5 @@
 ﻿using MonitorAndStart.v2.Command;
+using MonitorAndStart.v2.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -31,7 +32,7 @@ namespace MonitorAndStart.v2.ViewModel
 			Var4Text = File.Vars[3];
 		}
 
-		public static ObservableCollection<string> Types => new() { "File", "Service", "Stuck", "Script" };
+		public static ObservableCollection<string> Types => new() { "File", "Service", "Stuck", "Script", "API" };
 
 		private int _SelectedType;
 
@@ -74,6 +75,12 @@ namespace MonitorAndStart.v2.ViewModel
 						Var4Text = Script.Vars[3];
 						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Visibility.Visible;
 						Var5Visible = Visibility.Hidden;
+						break;
+					case 4:
+						//api
+						Var1Text = API.Vars[0];
+						Var1Visible = Visibility.Visible;
+						Var2Visible = Var3Visible = Var4Visible = Visibility.Hidden;
 						break;
 				}
 				RaisePropertyChanged();
@@ -123,6 +130,9 @@ namespace MonitorAndStart.v2.ViewModel
 					break;
 				case 3:
 					obj = new Script(Name, Var1, Var2, Var3, Var4, minutes, (Enums.Intervals)SelectedInterval, _StartDate, _StartDate.AddMinutes(minutes), RunOnStart);
+					break;
+				case 4:
+					obj = new API(Name, Var1, minutes, (Enums.Intervals)SelectedInterval, _StartDate, _StartDate.AddMinutes(minutes), RunOnStart);
 					break;
 			}
 			_vm.InsertNewJob(obj);

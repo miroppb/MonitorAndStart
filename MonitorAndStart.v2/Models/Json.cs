@@ -26,4 +26,9 @@
 		public bool runasadmin;
 		public bool runhidden;
 	}
+
+	class APIJson
+	{
+		public string url = string.Empty;
+	}
 }

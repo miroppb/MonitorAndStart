@@ -32,14 +32,15 @@ namespace MonitorAndStart.v2
 
 		public override void ExecuteJob()
 		{
-			ProcessWindowStyle ws = (RunHidden ? ProcessWindowStyle.Minimized : ProcessWindowStyle.Normal);
+			ProcessWindowStyle ws = RunHidden ? ProcessWindowStyle.Minimized : ProcessWindowStyle.Normal;
 
 			try
 			{
 				Process p = new();
 				p.StartInfo.FileName = Filename;
 				p.StartInfo.Arguments = Parameters;
-				p.StartInfo.WorkingDirectory = System.IO.Path.GetDirectoryName(Filename);
+                p.StartInfo.Verb = RunAsAdmin ? "runas" : ""; //the secret sauce?
+                p.StartInfo.WorkingDirectory = System.IO.Path.GetDirectoryName(Filename);
 				p.StartInfo.WindowStyle = ws;
 				if (ws == ProcessWindowStyle.Hidden)
 					p.StartInfo.CreateNoWindow = true;

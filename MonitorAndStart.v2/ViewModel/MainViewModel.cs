@@ -3,6 +3,7 @@ using miroppb;
 using MonitorAndStart.v2.Command;
 using MonitorAndStart.v2.Data;
 using MonitorAndStart.v2.Enums;
+using MonitorAndStart.v2.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -95,6 +96,13 @@ namespace MonitorAndStart.v2.ViewModel
 						Var4 = script.RunHidden;
 						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Visibility.Visible;
 						Var5Visible = Visibility.Hidden;
+					}
+					else if (SelectedJob is API api)
+					{
+						Var1Text = API.Vars[0];
+						Var1 = api.URL;
+						Var1Visible = Visibility.Visible;
+						Var5Visible = Var2Visible = Var3Visible = Var4Visible = Visibility.Hidden;
 					}
 					SelectedInterval = (int)SelectedJob.Interval;
 					switch (SelectedJob.Interval)
@@ -249,11 +257,24 @@ namespace MonitorAndStart.v2.ViewModel
 			if (Jobs.Any())
 				Jobs.Clear();
 
-			IEnumerable<Job>? jobs = await _mainDataProvider.GetJobsAsync();
+			IEnumerable<Job>? jobs = await TryGetJobsAsync();
 			jobs?.ToList().ForEach(Jobs.Add);
 		}
 
-		internal void ExecuteTasks(bool start)
+		private async Task<IEnumerable<Job>?> TryGetJobsAsync()
+		{
+			IEnumerable<Job>? jobs = null;
+			while (jobs == null)
+			{
+				jobs = await _mainDataProvider.GetJobsAsync();
+				if (jobs == null)
+                    await Task.Delay(TimeSpan.FromHours(1));
+			}
+			return jobs;
+		}
+
+
+        internal void ExecuteTasks(bool start)
 		{
 			foreach (Job job in Jobs)
 			{
@@ -334,6 +355,8 @@ namespace MonitorAndStart.v2.ViewModel
 					(SelectedJob as Stuck)!.Filename = Var1;
 				else if (SelectedJob is Script)
 					(SelectedJob as Script)!.Filename = Var1;
+				else if (SelectedJob is API)
+					(SelectedJob as API)!.URL = Var1;
 
 				RaisePropertyChanged();
 			}

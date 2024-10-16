@@ -23,7 +23,6 @@ namespace MonitorAndStart.v2.Data
 		public async Task<IEnumerable<Job>?> GetJobsAsync()
 		{
 			libmiroppb.Log($"Get List of Jobs");
-			IEnumerable<Job> jobs = new List<Job>();
 			try
 			{
 				using MySqlConnection db = Secrets.GetConnectionString();
@@ -65,12 +64,19 @@ namespace MonitorAndStart.v2.Data
 								Id = tempJob.Id
 							});
 							break;
+						case 4:
+							APIJson apj = JsonConvert.DeserializeObject<APIJson>(tempJob.Json)!;
+							result.Add(new API(tempJob.Name, apj.url, tempJob.Intervalinminutes, tempJob.Selectedinterval,
+								tempJob.Lastrun, tempJob.Nexttimetorun, tempJob.RunOnStart)
+							{
+								Id = tempJob.Id
+							});
+							break;
 					}
 				}
-				jobs = result;
+				return result;
 			}
-			catch { }
-			return jobs;
+			catch { return null; }
 		}
 
 		public bool InsertRecord(Job job)
@@ -124,6 +130,11 @@ namespace MonitorAndStart.v2.Data
 			else if (job is Script script)
 			{
 				ScriptJson js = new() { filename = script.Filename, parameters = script.Parameters, runasadmin = script.RunAsAdmin, runhidden = script.RunHidden };
+				tempJob.Json = JsonConvert.SerializeObject(js);
+			}
+			else if (job is API api)
+			{
+				APIJson js = new() { url = api.URL };
 				tempJob.Json = JsonConvert.SerializeObject(js);
 			}
 
