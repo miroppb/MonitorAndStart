@@ -64,7 +64,9 @@ namespace MonitorAndStart.v2.ViewModel
 						Var3 = file.restart;
 						Var4Text = File.Vars[3];
 						Var4 = file.runAsAdmin;
-						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Visibility.Visible;
+						Var6Text = File.Vars[4];
+						Var6 = file.runOnce;
+						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Var6Visible = Visibility.Visible;
 						Var5Visible = Visibility.Hidden;
 					}
 					else if (SelectedJob is Service service)
@@ -72,7 +74,7 @@ namespace MonitorAndStart.v2.ViewModel
 						Var5Text = File.Vars[1];
 						Var5 = Service.GetServices();
 						SelectedVar5 = service.ServiceName;
-						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Visibility.Hidden;
+						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Var6Visible = Visibility.Hidden;
 						Var5Visible = Visibility.Visible;
 					}
 					else if (SelectedJob is Stuck stuck)
@@ -82,27 +84,29 @@ namespace MonitorAndStart.v2.ViewModel
 						Var2Text = Stuck.Vars[1];
 						Var2 = stuck.StuckLongerThanMinutes.ToString();
 						Var1Visible = Var2Visible = Visibility.Visible;
-						Var3Visible = Var4Visible = Var5Visible = Visibility.Hidden;
+						Var3Visible = Var4Visible = Var5Visible = Var6Visible = Visibility.Hidden;
 					}
 					else if (SelectedJob is Script script)
 					{
 						Var1Text = Script.Vars[0];
-						Var1 = script.Filename;
+						Var1 = script.filename;
 						Var2Text = Script.Vars[1];
-						Var2 = script.Parameters;
+						Var2 = script.parameters;
 						Var3Text = Script.Vars[2];
-						Var3 = script.RunAsAdmin;
+						Var3 = script.runAsAdmin;
 						Var4Text = Script.Vars[3];
-						Var4 = script.RunHidden;
-						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Visibility.Visible;
+						Var4 = script.runHidden;
+						Var6Text = Script.Vars[4];
+						Var6 = script.runOnce;
+						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Var6Visible = Visibility.Visible;
 						Var5Visible = Visibility.Hidden;
 					}
 					else if (SelectedJob is API api)
 					{
 						Var1Text = API.Vars[0];
-						Var1 = api.URL;
+						Var1 = api.url;
 						Var1Visible = Visibility.Visible;
-						Var5Visible = Var2Visible = Var3Visible = Var4Visible = Visibility.Hidden;
+						Var5Visible = Var2Visible = Var3Visible = Var4Visible = Var6Visible = Visibility.Hidden;
 					}
 					SelectedInterval = (int)SelectedJob.Interval;
 					switch (SelectedJob.Interval)
@@ -207,7 +211,7 @@ namespace MonitorAndStart.v2.ViewModel
 			}
 		}
 
-		private void ExecuteRunCurrentJob(object obj) => SelectedJob?.ExecuteJob();
+		private void ExecuteRunCurrentJob(object obj) => SelectedJob?.ExecuteJob(true);
 
 		private void UpdateIntervalInMinutes()
 		{
@@ -231,7 +235,7 @@ namespace MonitorAndStart.v2.ViewModel
 		private void SetupTimer()
 		{
 			int minutes = 1;
-			libmiroppb.Log($"Setting up the Timer for every {minutes} minutes");
+			Libmiroppb.Log($"Setting up the Timer for every {minutes} minutes");
 			_executionTimer = new Timer(TimeSpan.FromMinutes(minutes));
 			_executionTimer.Elapsed += ExecutionTimer_Elapsed;
 			_executionTimer.Start();
@@ -242,7 +246,7 @@ namespace MonitorAndStart.v2.ViewModel
 		private void SetupUploadLogsTimer()
 		{
 			int minutes = 30;
-			libmiroppb.Log($"Setting up uploadLogs timer for every {minutes} minutes");
+			Libmiroppb.Log($"Setting up uploadLogs timer for every {minutes} minutes");
 			_uploadLogsTimer = new Timer(TimeSpan.FromMinutes(minutes));
 			_uploadLogsTimer.Elapsed += UploadLogsTimer_Elapsed; ;
 			_uploadLogsTimer.Start();
@@ -250,7 +254,7 @@ namespace MonitorAndStart.v2.ViewModel
 
 		private void UploadLogsTimer_Elapsed(object? sender, ElapsedEventArgs e) => UploadLogs(true);
 
-		private static void UploadLogs(bool deleteAfter) => libmiroppb.UploadLog(Secrets.GetConnectionString().ConnectionString, deleteAfter);
+		private async static void UploadLogs(bool deleteAfter) => await Libmiroppb.UploadLogAsync(Secrets.GetConnectionString().ConnectionString, deleteAfter);
 
 		internal async Task LoadAsync()
 		{
@@ -268,7 +272,9 @@ namespace MonitorAndStart.v2.ViewModel
 			{
 				jobs = await _mainDataProvider.GetJobsAsync();
 				if (jobs == null)
-                    await Task.Delay(TimeSpan.FromHours(1));
+					await Task.Delay(TimeSpan.FromHours(1));
+				else
+					SelectedJob = jobs.First();
 			}
 			return jobs;
 		}
@@ -282,7 +288,7 @@ namespace MonitorAndStart.v2.ViewModel
 				{
 					if (job.NextTimeToRun <= DateTime.Now)
 					{
-						job.ExecuteJob();
+						job.ExecuteJob(false);
 						job.LastRun = DateTime.Now;
 						job.NextTimeToRun = DateTime.Now.AddMinutes(job.IntervalInMinutes);
 
@@ -290,14 +296,14 @@ namespace MonitorAndStart.v2.ViewModel
 					}
 					else if (start & job.RunOnStart)
 					{
-						job.ExecuteJob();
+						job.ExecuteJob(true);
 						job.LastRun = DateTime.Now;
 						job.NextTimeToRun = DateTime.Now.AddMinutes(job.IntervalInMinutes);
 
 						_mainDataProvider.UpdateRecord(job);
 					}
 				}
-				catch { }
+				catch (Exception ex) { Libmiroppb.Log($"Error while executing job: {ex.Message}"); }
 			}
 		}
 
@@ -354,9 +360,9 @@ namespace MonitorAndStart.v2.ViewModel
 				else if (SelectedJob is Stuck)
 					(SelectedJob as Stuck)!.Filename = Var1;
 				else if (SelectedJob is Script)
-					(SelectedJob as Script)!.Filename = Var1;
+					(SelectedJob as Script)!.filename = Var1;
 				else if (SelectedJob is API)
-					(SelectedJob as API)!.URL = Var1;
+					(SelectedJob as API)!.url = Var1;
 
 				RaisePropertyChanged();
 			}
@@ -387,7 +393,7 @@ namespace MonitorAndStart.v2.ViewModel
 				else if (SelectedJob is Stuck)
 					(SelectedJob as Stuck)!.StuckLongerThanMinutes = int.Parse(Var2);
 				else if (SelectedJob is Script)
-					(SelectedJob as Script)!.Parameters = Var2;
+					(SelectedJob as Script)!.parameters = Var2;
 
 				RaisePropertyChanged();
 			}
@@ -416,7 +422,7 @@ namespace MonitorAndStart.v2.ViewModel
 				if (SelectedJob is File)
 					(SelectedJob as File)!.restart = Var3;
 				else if (SelectedJob is Script)
-					(SelectedJob as Script)!.RunAsAdmin = Var3;
+					(SelectedJob as Script)!.runAsAdmin = Var3;
 
 				RaisePropertyChanged();
 			}
@@ -445,7 +451,7 @@ namespace MonitorAndStart.v2.ViewModel
 				if (SelectedJob is File)
 					(SelectedJob as File)!.runAsAdmin = Var4;
 				else if (SelectedJob is Script)
-					(SelectedJob as Script)!.RunHidden = Var4;
+					(SelectedJob as Script)!.runHidden = Var4;
 
 				RaisePropertyChanged();
 			}
@@ -485,6 +491,30 @@ namespace MonitorAndStart.v2.ViewModel
 			set
 			{
 				_Var5 = value;
+				RaisePropertyChanged();
+			}
+		}
+
+		private bool _Var6;
+
+		public bool Var6
+		{
+			get => _Var6;
+			set
+			{
+				_Var6 = value;
+				RaisePropertyChanged();
+			}
+		}
+
+		private string _Var6Text = string.Empty;
+
+		public string Var6Text
+		{
+			get => _Var6Text;
+			set
+			{
+				_Var6Text = value;
 				RaisePropertyChanged();
 			}
 		}
@@ -541,6 +571,18 @@ namespace MonitorAndStart.v2.ViewModel
 			set
 			{
 				_Var5Visible = value;
+				RaisePropertyChanged();
+			}
+		}
+
+		private Visibility _Var6Visible = Visibility.Hidden;
+
+		public Visibility Var6Visible
+		{
+			get => _Var6Visible;
+			set
+			{
+				_Var6Visible = value;
 				RaisePropertyChanged();
 			}
 		}

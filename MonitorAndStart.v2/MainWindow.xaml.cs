@@ -20,7 +20,7 @@ namespace MonitorAndStart.v2
 		public MainWindow()
 		{
 			InitializeComponent();
-			libmiroppb.Log($"Welcome to Monitor and Start 2. v{Assembly.GetEntryAssembly()!.GetName().Version}");
+			Libmiroppb.Log($"Welcome to Monitor and Start 2. v{Assembly.GetEntryAssembly()!.GetName().Version}");
 			bool ShowTbi = true;
 			if (Environment.GetCommandLineArgs().Length > 1)
 			{
@@ -80,7 +80,7 @@ namespace MonitorAndStart.v2
 
 		private void ScanWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
 		{
-			libmiroppb.Log("Application closing");
+			Libmiroppb.Log("Application closing");
 			_viewModel.tbi.Dispose();
 		}
 	}

@@ -6,6 +6,7 @@
 		public string parameters = string.Empty;
 		public bool restart;
 		public bool runasadmin;
+		public bool runonce;
 	}
 
 	class ServiceJson
@@ -25,6 +26,7 @@
 		public string parameters = string.Empty;
 		public bool runasadmin;
 		public bool runhidden;
+		public bool runonce;
 	}
 
 	class APIJson

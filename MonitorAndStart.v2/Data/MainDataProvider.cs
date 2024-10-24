@@ -22,7 +22,7 @@ namespace MonitorAndStart.v2.Data
 	{
 		public async Task<IEnumerable<Job>?> GetJobsAsync()
 		{
-			libmiroppb.Log($"Get List of Jobs");
+			Libmiroppb.Log($"Get List of Jobs");
 			try
 			{
 				using MySqlConnection db = Secrets.GetConnectionString();
@@ -34,10 +34,11 @@ namespace MonitorAndStart.v2.Data
 					{
 						case 0:
 							FileJson fj = JsonConvert.DeserializeObject<FileJson>(tempJob.Json)!;
-							result.Add(new File(tempJob.Name, fj.filename, fj.parameters, fj.restart, fj.runasadmin, tempJob.Intervalinminutes,
+							result.Add(new File(tempJob.Name, fj.filename, fj.parameters, fj.restart, fj.runasadmin, fj.runonce, tempJob.Intervalinminutes,
 								tempJob.Selectedinterval, tempJob.Lastrun, tempJob.Nexttimetorun, tempJob.RunOnStart)
 							{
-								Id = tempJob.Id
+								Id = tempJob.Id,
+								Enabled = tempJob.Enabled
 							});
 							break;
 						case 1:
@@ -45,7 +46,8 @@ namespace MonitorAndStart.v2.Data
 							result.Add(new Service(tempJob.Name, sj.servicename, tempJob.Intervalinminutes, tempJob.Selectedinterval,
 								tempJob.Lastrun, tempJob.Nexttimetorun, tempJob.RunOnStart)
 							{
-								Id = tempJob.Id
+								Id = tempJob.Id,
+								Enabled = tempJob.Enabled
 							});
 							break;
 						case 2:
@@ -53,15 +55,17 @@ namespace MonitorAndStart.v2.Data
 							result.Add(new Stuck(tempJob.Name, stj.filename, stj.stucklongerthanminutes, tempJob.Intervalinminutes, tempJob.Selectedinterval,
 								tempJob.Lastrun, tempJob.Nexttimetorun, tempJob.RunOnStart)
 							{
-								Id = tempJob.Id
+								Id = tempJob.Id,
+								Enabled = tempJob.Enabled
 							});
 							break;
 						case 3:
 							ScriptJson scj = JsonConvert.DeserializeObject<ScriptJson>(tempJob.Json)!;
-							result.Add(new Script(tempJob.Name, scj.filename, scj.parameters, scj.runasadmin, scj.runhidden, tempJob.Intervalinminutes, tempJob.Selectedinterval,
+							result.Add(new Script(tempJob.Name, scj.filename, scj.parameters, scj.runasadmin, scj.runhidden, scj.runonce, tempJob.Intervalinminutes, tempJob.Selectedinterval,
 								tempJob.Lastrun, tempJob.Nexttimetorun, tempJob.RunOnStart)
 							{
-								Id = tempJob.Id
+								Id = tempJob.Id,
+								Enabled = tempJob.Enabled
 							});
 							break;
 						case 4:
@@ -69,7 +73,8 @@ namespace MonitorAndStart.v2.Data
 							result.Add(new API(tempJob.Name, apj.url, tempJob.Intervalinminutes, tempJob.Selectedinterval,
 								tempJob.Lastrun, tempJob.Nexttimetorun, tempJob.RunOnStart)
 							{
-								Id = tempJob.Id
+								Id = tempJob.Id,
+								Enabled = tempJob.Enabled
 							});
 							break;
 					}
@@ -85,7 +90,7 @@ namespace MonitorAndStart.v2.Data
 			try
 			{
 				using MySqlConnection db = Secrets.GetConnectionString();
-				libmiroppb.Log($"Inserting into Database: {JsonConvert.SerializeObject(tempJob)}");
+				Libmiroppb.Log($"Inserting into Database: {JsonConvert.SerializeObject(tempJob)}");
 				job.Id = (int)db.Insert(tempJob);
 				return true;
 			}
@@ -111,10 +116,10 @@ namespace MonitorAndStart.v2.Data
 
 		private static TempJob MapJobToTempJob(Job job)
 		{
-			TempJob tempJob = new() { Id = job.Id, Name = job.Name, Type = job.TypeOfJob, Intervalinminutes = job.IntervalInMinutes, Selectedinterval = job.Interval, Lastrun = job.LastRun, Nexttimetorun = job.NextTimeToRun, RunOnStart = job.RunOnStart, PcName = Environment.MachineName };
+			TempJob tempJob = new() { Id = job.Id, Name = job.Name, Type = job.TypeOfJob, Intervalinminutes = job.IntervalInMinutes, Selectedinterval = job.Interval, Lastrun = job.LastRun, Nexttimetorun = job.NextTimeToRun, RunOnStart = job.RunOnStart, PcName = Environment.MachineName, Enabled = job.Enabled };
 			if (job is File file)
 			{
-				FileJson js = new() { filename = file.filename, parameters = file.parameters, restart = file.restart, runasadmin = file.runAsAdmin };
+				FileJson js = new() { filename = file.filename, parameters = file.parameters, restart = file.restart, runasadmin = file.runAsAdmin, runonce = file.runOnce };
 				tempJob.Json = JsonConvert.SerializeObject(js);
 			}
 			else if (job is Service service)
@@ -129,12 +134,12 @@ namespace MonitorAndStart.v2.Data
 			}
 			else if (job is Script script)
 			{
-				ScriptJson js = new() { filename = script.Filename, parameters = script.Parameters, runasadmin = script.RunAsAdmin, runhidden = script.RunHidden };
+				ScriptJson js = new() { filename = script.filename, parameters = script.parameters, runasadmin = script.runAsAdmin, runhidden = script.runHidden, runonce = script.runOnce };
 				tempJob.Json = JsonConvert.SerializeObject(js);
 			}
 			else if (job is API api)
 			{
-				APIJson js = new() { url = api.URL };
+				APIJson js = new() { url = api.url };
 				tempJob.Json = JsonConvert.SerializeObject(js);
 			}
 

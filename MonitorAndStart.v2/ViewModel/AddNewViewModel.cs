@@ -30,6 +30,7 @@ namespace MonitorAndStart.v2.ViewModel
 			Var2Text = File.Vars[1];
 			Var3Text = File.Vars[2];
 			Var4Text = File.Vars[3];
+			Var6Text = File.Vars[4];
 		}
 
 		public static ObservableCollection<string> Types => new() { "File", "Service", "Stuck", "Script", "API" };
@@ -50,7 +51,8 @@ namespace MonitorAndStart.v2.ViewModel
 						Var2Text = File.Vars[1];
 						Var3Text = File.Vars[2];
 						Var4Text = File.Vars[3];
-						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Visibility.Visible;
+						Var6Text = File.Vars[4];
+						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Var6Visible = Visibility.Visible;
 						Var5Visible = Visibility.Hidden;
 						break;
 					case 1:
@@ -58,14 +60,14 @@ namespace MonitorAndStart.v2.ViewModel
 						Var5Text = Service.Vars[0];
 						Var5 = Service.GetServices();
 						Var5Visible = Visibility.Visible;
-						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Visibility.Hidden;
+						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Var6Visible = Visibility.Hidden;
 						break;
 					case 2:
 						//stuck
 						Var1Text = Stuck.Vars[0];
 						Var2Text = Stuck.Vars[1];
 						Var1Visible = Var2Visible = Visibility.Visible;
-						Var3Visible = Var4Visible = Var5Visible = Visibility.Hidden;
+						Var3Visible = Var4Visible = Var5Visible = Var6Visible = Visibility.Hidden;
 						break;
 					case 3:
 						//script
@@ -73,14 +75,15 @@ namespace MonitorAndStart.v2.ViewModel
 						Var2Text = Script.Vars[1];
 						Var3Text = Script.Vars[2];
 						Var4Text = Script.Vars[3];
-						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Visibility.Visible;
+						Var6Text = Script.Vars[4];
+						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Var6Visible = Visibility.Visible;
 						Var5Visible = Visibility.Hidden;
 						break;
 					case 4:
 						//api
 						Var1Text = API.Vars[0];
 						Var1Visible = Visibility.Visible;
-						Var2Visible = Var3Visible = Var4Visible = Visibility.Hidden;
+						Var2Visible = Var3Visible = Var4Visible = Var5Visible = Var6Visible = Visibility.Hidden;
 						break;
 				}
 				RaisePropertyChanged();
@@ -120,7 +123,7 @@ namespace MonitorAndStart.v2.ViewModel
 			switch (SelectedType)
 			{
 				case 0:
-					obj = new File(Name, Var1, Var2, Var3, Var4, minutes, (Enums.Intervals)SelectedInterval, _StartDate, _StartDate.AddMinutes(minutes), RunOnStart);
+					obj = new File(Name, Var1, Var2, Var3, Var4, Var6, minutes, (Enums.Intervals)SelectedInterval, _StartDate, _StartDate.AddMinutes(minutes), RunOnStart);
 					break;
 				case 1:
 					obj = new Service(Name, SelectedVar5, minutes, (Enums.Intervals)SelectedInterval, _StartDate, _StartDate.AddMinutes(minutes), RunOnStart);
@@ -129,12 +132,13 @@ namespace MonitorAndStart.v2.ViewModel
 					obj = new Stuck(Name, Var1, int.Parse(Var2), minutes, (Enums.Intervals)SelectedInterval, _StartDate, _StartDate.AddMinutes(minutes), RunOnStart);
 					break;
 				case 3:
-					obj = new Script(Name, Var1, Var2, Var3, Var4, minutes, (Enums.Intervals)SelectedInterval, _StartDate, _StartDate.AddMinutes(minutes), RunOnStart);
+					obj = new Script(Name, Var1, Var2, Var3, Var4, Var6, minutes, (Enums.Intervals)SelectedInterval, _StartDate, _StartDate.AddMinutes(minutes), RunOnStart);
 					break;
 				case 4:
 					obj = new API(Name, Var1, minutes, (Enums.Intervals)SelectedInterval, _StartDate, _StartDate.AddMinutes(minutes), RunOnStart);
 					break;
 			}
+			if (obj != null) obj.Enabled = true;
 			_vm.InsertNewJob(obj);
 			OnClosingRequest();
 		}
@@ -284,6 +288,30 @@ namespace MonitorAndStart.v2.ViewModel
 			}
 		}
 
+		private bool _Var6;
+
+		public bool Var6
+		{
+			get => _Var6;
+			set
+			{
+				_Var6 = value;
+				RaisePropertyChanged();
+			}
+		}
+
+		private string _Var6Text = string.Empty;
+
+		public string Var6Text
+		{
+			get => _Var6Text;
+			set
+			{
+				_Var6Text = value;
+				RaisePropertyChanged();
+			}
+		}
+
 		private Visibility _Var1Visible = Visibility.Visible;
 
 		public Visibility Var1Visible
@@ -336,6 +364,18 @@ namespace MonitorAndStart.v2.ViewModel
 			set
 			{
 				_Var5Visible = value;
+				RaisePropertyChanged();
+			}
+		}
+
+		private Visibility _Var6Visible = Visibility.Visible;
+
+		public Visibility Var6Visible
+		{
+			get => _Var6Visible;
+			set
+			{
+				_Var6Visible = value;
 				RaisePropertyChanged();
 			}
 		}

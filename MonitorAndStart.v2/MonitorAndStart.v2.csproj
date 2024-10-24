@@ -6,17 +6,12 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>monitor.ico</ApplicationIcon>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="monitor.ico" />
     <None Remove="monitor.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="libmiroppb">
-      <HintPath>..\..\libmiroppb\libmiroppb\bin\Debug\libmiroppb.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>
@@ -37,6 +32,12 @@
     <Content Include="monitor.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Libmiroppb">
+      <HintPath>..\..\Libmiroppb\Libmiroppb\bin\Debug\net7.0\Libmiroppb.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

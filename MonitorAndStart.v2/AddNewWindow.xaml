@@ -64,6 +64,9 @@
         <TextBlock Text="{Binding Var5Text}" Grid.Column="1" Grid.Row="2" Visibility="{Binding Var5Visible}"/>
         <ComboBox Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Margin="5,7,15,7" ItemsSource="{Binding Var5}" SelectedItem="{Binding SelectedVar5}" Visibility="{Binding Var5Visible}"/>
 
+        <TextBlock Text="{Binding Var6Text, FallbackValue='Run Once'}" Grid.Column="3" Grid.Row="4" HorizontalAlignment="Right" Visibility="{Binding Var6Visible}"/>
+        <CheckBox IsChecked="{Binding Var6, Mode=TwoWay}" Grid.Column="4"  Grid.Row="4" VerticalAlignment="Center" Margin="5,0,-5,0" Visibility="{Binding Var6Visible}" />
+
         <TextBlock Text="Run on Start" Grid.Column="3" Grid.Row="5"/>
         <CheckBox IsChecked="{Binding RunOnStart, Mode=TwoWay}" Grid.Column="4"  Grid.Row="5" VerticalAlignment="Center" Margin="5,0,-5,0" />
 

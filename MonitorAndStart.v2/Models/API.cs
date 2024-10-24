@@ -8,31 +8,34 @@ namespace MonitorAndStart.v2.Models
 {
 	public class API : Job
 	{
-		public string URL;
+		public string url;
 
-		public API(string Name, string url, int IntervalInMinutes, Intervals SelectedInterval, DateTime LastRan, DateTime NextTimeToRun, bool runOnStart)
+		public API(string _Name, string _Url, int _IntervalInMinutes, Intervals _SelectedInterval, DateTime _LastRan, DateTime _NextTimeToRun, bool _RunOnStart)
 		{
-			this.Name = Name;
-			URL = url;
-			this.IntervalInMinutes = IntervalInMinutes;
-			Interval = SelectedInterval;
-			LastRun = LastRan;
-			this.NextTimeToRun = NextTimeToRun;
-			RunOnStart = runOnStart;
+			Name = _Name;
+			url = _Url;
+			IntervalInMinutes = _IntervalInMinutes;
+			Interval = _SelectedInterval;
+			LastRun = _LastRan;
+			NextTimeToRun = _NextTimeToRun;
+			RunOnStart = _RunOnStart;
 		}
 		public override int TypeOfJob => 4;
 
 		public static List<string> Vars => new() { "URL" };
 
-		public async override void ExecuteJob()
+		public async override void ExecuteJob(bool force = false)
 		{
-			libmiroppb.Log($"Calling API: {URL}");
-			HttpClient client = new()
+			if (Enabled)
 			{
-				BaseAddress = new(URL)
-			};
-			var response = await client.GetAsync("");
-			libmiroppb.Log($"Response: {response}");
+				Libmiroppb.Log($"Calling API: {url}");
+				HttpClient client = new()
+				{
+					BaseAddress = new(url)
+				};
+				var response = await client.GetAsync("");
+				Libmiroppb.Log($"Response: {response}");
+			}
 		}
 	}
 }

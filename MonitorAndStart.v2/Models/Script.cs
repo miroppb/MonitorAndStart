@@ -8,70 +8,78 @@ namespace MonitorAndStart.v2
 {
 	class Script : Job
 	{
-		public string Filename;
-		public string Parameters;
-		public bool RunAsAdmin;
-		public bool RunHidden;
+		public string filename;
+		public string parameters;
+		public bool runAsAdmin;
+		public bool runHidden;
+		public bool runOnce;
+		bool alreadyRan;
 
-		public Script(string Name, string Filename, string Parameters, bool runAsAdmin, bool runHidden, int IntervalInMinutes, Intervals SelectedInterval, DateTime LastRan, DateTime NextTimeToRun, bool runOnStart)
+		public Script(string _Name, string _Filename, string _Parameters, bool _RunAsAdmin, bool _RunHidden, bool _RunOnce, int _IntervalInMinutes, Intervals _SelectedInterval, DateTime _LastRan, DateTime _NextTimeToRun, bool _RunOnStart)
 		{
-			this.Name = Name;
-			this.Filename = Filename;
-			this.Parameters = Parameters;
-			RunAsAdmin = runAsAdmin;
-			RunHidden = runHidden;
-			this.IntervalInMinutes = IntervalInMinutes;
-			Interval = SelectedInterval;
-			LastRun = LastRan;
-			this.NextTimeToRun = NextTimeToRun;
-			RunOnStart = runOnStart;
+			Name = _Name;
+			filename = _Filename;
+			parameters = _Parameters;
+			runAsAdmin = _RunAsAdmin;
+			runHidden = _RunHidden;
+			runOnce = _RunOnce;
+			IntervalInMinutes = _IntervalInMinutes;
+			Interval = _SelectedInterval;
+			LastRun = _LastRan;
+			NextTimeToRun = _NextTimeToRun;
+			RunOnStart = _RunOnStart;
 		}
 		public override int TypeOfJob => 3;
 
-		public static List<string> Vars => new() { "Filename", "Parameters", "Run as Admin", "Run Hidden" };
+		public static List<string> Vars => new() { "Filename", "Parameters", "Run as Admin", "Run Hidden", "Run Once" };
 
-		public override void ExecuteJob()
+		public override void ExecuteJob(bool force)
 		{
-			ProcessWindowStyle ws = RunHidden ? ProcessWindowStyle.Minimized : ProcessWindowStyle.Normal;
-
-			try
+			if (force | (!force & runOnce & !alreadyRan) && Enabled)
 			{
-				Process p = new();
-				p.StartInfo.FileName = Filename;
-				p.StartInfo.Arguments = Parameters;
-                p.StartInfo.Verb = RunAsAdmin ? "runas" : ""; //the secret sauce?
-                p.StartInfo.WorkingDirectory = System.IO.Path.GetDirectoryName(Filename);
-				p.StartInfo.WindowStyle = ws;
-				if (ws == ProcessWindowStyle.Hidden)
-					p.StartInfo.CreateNoWindow = true;
-				p.StartInfo.RedirectStandardOutput = true;
-				p.StartInfo.UseShellExecute = false;
-				p.OutputDataReceived += P_OutputDataReceived;
-				p.Start();
-				libmiroppb.Log($"'{Filename}' has been started");
+				alreadyRan = true;
+				ProcessWindowStyle ws = runHidden ? ProcessWindowStyle.Minimized : ProcessWindowStyle.Normal;
 
-				p.BeginOutputReadLine();
-				p.WaitForExit();
-				if (p.ExitCode != 0)
-					NextTimeToRun = DateTime.Now.AddMinutes(5);
-				else
+				try
 				{
-					LastRun = DateTime.Now;
-					NextTimeToRun = DateTime.Now.AddMinutes(IntervalInMinutes);
-				}
-				p.Dispose();
+					Process p = new();
+					p.StartInfo.FileName = filename;
+					p.StartInfo.Arguments = parameters;
+					p.StartInfo.Verb = runAsAdmin ? "runas" : ""; //the secret sauce?
+					p.StartInfo.WorkingDirectory = System.IO.Path.GetDirectoryName(filename);
+					p.StartInfo.WindowStyle = ws;
+					if (ws == ProcessWindowStyle.Hidden)
+						p.StartInfo.CreateNoWindow = true;
+					p.StartInfo.RedirectStandardOutput = true;
+					p.StartInfo.UseShellExecute = false;
+					p.OutputDataReceived += P_OutputDataReceived;
+					p.Start();
+					Libmiroppb.Log($"'{filename}' has been started");
 
-			}
-			catch (Exception ex)
-			{
-				libmiroppb.Log($"Error starting '{Filename}'. Message: {ex.Message}");
-				NextTimeToRun = DateTime.Now.AddMinutes(5);
+					p.BeginOutputReadLine();
+					p.WaitForExit();
+					if (p.ExitCode != 0)
+						NextTimeToRun = DateTime.Now.AddMinutes(5);
+					else
+					{
+						LastRun = DateTime.Now;
+						NextTimeToRun = DateTime.Now.AddMinutes(IntervalInMinutes);
+					}
+					p.Dispose();
+
+				}
+				catch (Exception ex)
+				{
+					Libmiroppb.Log($"Error starting '{filename}'. Message: {ex.Message}");
+					NextTimeToRun = DateTime.Now.AddMinutes(5);
+				}
 			}
 		}
 
 		private void P_OutputDataReceived(object sender, DataReceivedEventArgs e)
 		{
-			libmiroppb.Log(e.Data);
+			if (e != null && e.Data != null)
+				Libmiroppb.Log(e.Data);
 		}
 	}
 }

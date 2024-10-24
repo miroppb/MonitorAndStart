@@ -10,38 +10,41 @@ namespace MonitorAndStart.v2
 		public int StuckLongerThanMinutes;
 		public string Filename;
 
-		public Stuck(string Name, string filename, int StuckLongerThanMinutes, int IntervalInMinutes, Intervals SelectedInterval, DateTime LastRan, DateTime NextTimeToRun, bool RunOnStart)
+		public Stuck(string _Name, string _Filename, int _StuckLongerThanMinutes, int _IntervalInMinutes, Intervals _SelectedInterval, DateTime _LastRan, DateTime _NextTimeToRun, bool _RunOnStart)
 		{
-			this.Name = Name;
-			Filename = filename;
-			this.StuckLongerThanMinutes = StuckLongerThanMinutes;
-			this.IntervalInMinutes = IntervalInMinutes;
-			Interval = SelectedInterval;
-			LastRun = LastRan;
-			this.NextTimeToRun = NextTimeToRun;
-			this.RunOnStart = RunOnStart;
+			Name = _Name;
+			Filename = _Filename;
+			StuckLongerThanMinutes = _StuckLongerThanMinutes;
+			IntervalInMinutes = _IntervalInMinutes;
+			Interval = _SelectedInterval;
+			LastRun = _LastRan;
+			NextTimeToRun = _NextTimeToRun;
+			RunOnStart = _RunOnStart;
 		}
 		public override int TypeOfJob => 2;
 
 		public static List<string> Vars => new() { "Filename", "Minutes Stuck" };
 
-		public override void ExecuteJob()
+		public override void ExecuteJob(bool force = false)
 		{
-			libmiroppb.Log($"Checking if file exists and is past threshold: {Filename} {StuckLongerThanMinutes}...");
-
-			//check if file exists
-			if (System.IO.File.Exists(Filename))
+			if (Enabled)
 			{
-				if (IsAboveThreshold(Filename, StuckLongerThanMinutes))
+				Libmiroppb.Log($"Checking if file exists and is past threshold: {Filename} {StuckLongerThanMinutes}...");
+
+				//check if file exists
+				if (System.IO.File.Exists(Filename))
 				{
-					try
+					if (IsAboveThreshold(Filename, StuckLongerThanMinutes))
 					{
-						System.IO.File.Delete(Filename);
-						libmiroppb.Log($"File {Filename} deleted");
-					}
-					catch (Exception ex)
-					{
-						libmiroppb.Log($"Error deleting file: {Filename}, message: {ex.Message}");
+						try
+						{
+							System.IO.File.Delete(Filename);
+							Libmiroppb.Log($"File {Filename} deleted");
+						}
+						catch (Exception ex)
+						{
+							Libmiroppb.Log($"Error deleting file: {Filename}, message: {ex.Message}");
+						}
 					}
 				}
 			}

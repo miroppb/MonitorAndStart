@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace MonitorAndStart.v2
@@ -15,80 +14,83 @@ namespace MonitorAndStart.v2
 		public string parameters;
 		public bool restart;
 		public bool runAsAdmin;
+		public bool runOnce;
+		bool alreadyRan;
 
-		public File(string Name, string Filename, string Parameters, bool Restart, bool runAsAdmin, int IntervalInMinutes, Intervals SelectedInterval, DateTime LastRan, DateTime NextTimeToRun, bool runOnStart)
+		public File(string _Name, string _Filename, string _Parameters, bool _Restart, bool _RunAsAdmin, bool _RunOnce, int _IntervalInMinutes, Intervals _SelectedInterval, DateTime _LastRan, DateTime _NextTimeToRun, bool _RunOnStart)
 		{
-			this.Name = Name;
-			filename = Filename;
-			parameters = Parameters;
-			restart = Restart;
-			this.IntervalInMinutes = IntervalInMinutes;
-			Interval = SelectedInterval;
-			LastRun = LastRan;
-			this.NextTimeToRun = NextTimeToRun;
-			RunOnStart = runOnStart;
-			this.runAsAdmin = runAsAdmin;
+			Name = _Name;
+			filename = _Filename;
+			parameters = _Parameters;
+			restart = _Restart;
+			IntervalInMinutes = _IntervalInMinutes;
+			Interval = _SelectedInterval;
+			LastRun = _LastRan;
+			NextTimeToRun = _NextTimeToRun;
+			RunOnStart = _RunOnStart;
+			runAsAdmin = _RunAsAdmin;
+			runOnce = _RunOnce;
 		}
 		public override int TypeOfJob => 0;
 
-		public static List<string> Vars => new() { "Filename", "Parameters", "Restart", "Run as Admin" };
+		public static List<string> Vars => new() { "Filename", "Parameters", "Restart", "Run as Admin", "Run Once" };
 
-		public override void ExecuteJob()
+		public override void ExecuteJob(bool force)
 		{
-			libmiroppb.Log($"Checking if '{Path.GetFileName(filename)}' is running...");
-			if (!ProgramIsRunning(filename))
+			if (force | (!force & runOnce & !alreadyRan) && Enabled)
 			{
-				libmiroppb.Log($"'{Path.GetFileName(filename)}' is not running. Trying to start");
-				try
+				alreadyRan = true;
+				Libmiroppb.Log($"Checking if '{Path.GetFileName(filename)}' is running...");
+				if (!ProgramIsRunning(filename))
 				{
-					Process p = new();
-					p.StartInfo.FileName = filename;
-					p.StartInfo.Arguments = parameters;
-					p.StartInfo.WorkingDirectory = Path.GetDirectoryName(filename);
-					p.StartInfo.Verb = runAsAdmin ? "runas" : ""; //the secret sauce?
-					p.Start();
-					libmiroppb.Log($"'{Path.GetFileName(filename)}' has been started");
-
-					LastRun = DateTime.Now;
-					NextTimeToRun = DateTime.Now.AddMinutes(IntervalInMinutes);
-				}
-				catch (Exception ex)
-				{
-					libmiroppb.Log($"Error starting '{Path.GetFileName(filename)}'. Message: {ex.Message}");
-				}
-			}
-			else if (restart)
-			{
-				Process[] runningProcesses = Process.GetProcesses();
-				foreach (Process process in runningProcesses)
-				{
-					if (process.ProcessName == Path.GetFileNameWithoutExtension(filename))
+					Libmiroppb.Log($"'{Path.GetFileName(filename)}' is not running. Trying to start");
+					try
 					{
-						try
-						{
-							process.CloseMainWindow();
-							Task.Delay(5000);
-						}
-						catch { }
+						if (runAsAdmin)
+							ProcessRunner.ExecuteProcess(filename, parameters);
+						else
+							ProcessRunner.ExecuteProcessUnElevated(filename, parameters);
+						Libmiroppb.Log($"'{Path.GetFileName(filename)}' has been restarted");
+
+						LastRun = DateTime.Now;
+						NextTimeToRun = DateTime.Now.AddMinutes(IntervalInMinutes);
+					}
+					catch (Exception ex)
+					{
+						Libmiroppb.Log($"Error starting '{Path.GetFileName(filename)}'. Message: {ex.Message}");
 					}
 				}
-
-				try
+				else if (restart)
 				{
-					Process p = new();
-                    p.StartInfo.FileName = filename;
-                    p.StartInfo.Arguments = parameters;
-                    p.StartInfo.WorkingDirectory = Path.GetDirectoryName(filename);
-                    p.StartInfo.Verb = runAsAdmin ? "runas" : ""; //the secret sauce?
-                    p.Start();
-					libmiroppb.Log($"'{Path.GetFileName(filename)}' has been restarted");
+					Process[] runningProcesses = Process.GetProcesses();
+					foreach (Process process in runningProcesses)
+					{
+						if (process.ProcessName == Path.GetFileNameWithoutExtension(filename))
+						{
+							try
+							{
+								process.CloseMainWindow();
+								Task.Delay(5000);
+							}
+							catch { }
+						}
+					}
 
-					LastRun = DateTime.Now;
-					NextTimeToRun = DateTime.Now.AddMinutes(IntervalInMinutes);
-				}
-				catch (Exception ex)
-				{
-					libmiroppb.Log($"Error starting '{Path.GetFileName(filename)}'. Message: {ex.Message}");
+					try
+					{
+						if (runAsAdmin)
+							ProcessRunner.ExecuteProcess(filename, parameters);
+						else
+							ProcessRunner.ExecuteProcessUnElevated(filename, parameters);
+						Libmiroppb.Log($"'{Path.GetFileName(filename)}' has been restarted");
+
+						LastRun = DateTime.Now;
+						NextTimeToRun = DateTime.Now.AddMinutes(IntervalInMinutes);
+					}
+					catch (Exception ex)
+					{
+						Libmiroppb.Log($"Error starting '{Path.GetFileName(filename)}'. Message: {ex.Message}");
+					}
 				}
 			}
 		}
@@ -100,7 +102,7 @@ namespace MonitorAndStart.v2
 			bool isRunning = false;
 
 			Process[] pList = Process.GetProcessesByName(FileName);
-			libmiroppb.Log(pList.Length + " processes running");
+			Libmiroppb.Log(pList.Length + " processes running");
 			try
 			{
 				foreach (Process p in pList)
@@ -112,8 +114,8 @@ namespace MonitorAndStart.v2
 					}
 				}
 			}
-			catch (Exception ex) { libmiroppb.Log("Error: " + ex.Message); }
-			libmiroppb.Log("Returning: " + isRunning.ToString());
+			catch (Exception ex) { Libmiroppb.Log("Error: " + ex.Message); }
+			Libmiroppb.Log("Returning: " + isRunning.ToString());
 			return isRunning;
 		}
 	}
