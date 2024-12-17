@@ -21,6 +21,7 @@ namespace MonitorAndStart.v2
 			DataContext = _addvm;
 
 			TxtVar1.AddHandler(MouseLeftButtonDownEvent, new MouseButtonEventHandler(TxtVar1_MouseLeftButtonDown), true);
+			TxtVar7.AddHandler(MouseLeftButtonDownEvent, new MouseButtonEventHandler(TxtVar7_MouseLeftButtonDown), true);
 			_addvm.ClosingRequest += (sender, e) => Close();
 		}
 
@@ -46,6 +47,21 @@ namespace MonitorAndStart.v2
 				if (ofd.ShowDialog() == true)
 				{
 					_addvm.Var1 = ofd.FileName;
+				}
+			}
+		}
+
+		private void TxtVar7_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+		{
+			if (_addvm.SelectedType == 4)
+			{
+				SaveFileDialog ofd = new()
+				{
+					Filter = "Any File|*.*"
+				};
+				if (ofd.ShowDialog() == true)
+				{
+					_addvm.Var7 = ofd.FileName;
 				}
 			}
 		}

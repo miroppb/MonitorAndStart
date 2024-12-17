@@ -26,10 +26,11 @@ namespace MonitorAndStart.v2
 
 		public static List<string> Vars => new() { "Service" };
 
-		public async override void ExecuteJob(bool force = false)
+		public override void ExecuteJob(bool force = false)
 		{
 			if (Enabled)
 			{
+				CompletedSuccess = false;
 				try
 				{
 					Libmiroppb.Log($"Trying to restart {ServiceName}.");
@@ -38,25 +39,29 @@ namespace MonitorAndStart.v2
 					try
 					{
 						sc.Stop();
+						sc.WaitForStatus(ServiceControllerStatus.Stopped);
 					}
-					catch { }
+					catch (Exception ex) { Libmiroppb.Log($"Failed to stop: {ex.Message}"); }
 
-					await Task.Delay(1000);
 					try
 					{
 						sc.Start();
+						sc.WaitForStatus(ServiceControllerStatus.Running);
 						Libmiroppb.Log($"{ServiceName} restarted successfully");
 
-						LastRun = DateTime.Now;
-						NextTimeToRun = DateTime.Now.AddMinutes(IntervalInMinutes);
+						CompletedSuccess = true;
+						return;
 					}
-					catch { }
+					catch (Exception ex) { Libmiroppb.Log($"Failed to restart: {ex.Message}"); CompletedSuccess = false; }
 				}
 				catch
 				{
 					Libmiroppb.Log($"Restarting {ServiceName} Failed");
+					CompletedSuccess = false;
+					return;
 				}
 			}
+			CompletedSuccess = true;
 		}
 
 		public static List<string> GetServices() => ServiceController.GetServices().Select(x => x.ServiceName).ToList();

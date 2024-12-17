@@ -28,7 +28,7 @@ namespace MonitorAndStart.v2.ViewModel
 
 		public TaskbarIcon tbi;
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+		public event PropertyChangedEventHandler? PropertyChanged;
 
 		private static Window? MainWindow { get; set; }
 
@@ -67,7 +67,7 @@ namespace MonitorAndStart.v2.ViewModel
 						Var6Text = File.Vars[4];
 						Var6 = file.runOnce;
 						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Var6Visible = Visibility.Visible;
-						Var5Visible = Visibility.Hidden;
+						Var5Visible = Var7Visible = Visibility.Hidden;
 					}
 					else if (SelectedJob is Service service)
 					{
@@ -75,7 +75,7 @@ namespace MonitorAndStart.v2.ViewModel
 						Var5 = Service.GetServices();
 						SelectedVar5 = service.ServiceName;
 						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Var6Visible = Visibility.Hidden;
-						Var5Visible = Visibility.Visible;
+						Var5Visible = Var7Visible = Visibility.Visible;
 					}
 					else if (SelectedJob is Stuck stuck)
 					{
@@ -84,7 +84,7 @@ namespace MonitorAndStart.v2.ViewModel
 						Var2Text = Stuck.Vars[1];
 						Var2 = stuck.StuckLongerThanMinutes.ToString();
 						Var1Visible = Var2Visible = Visibility.Visible;
-						Var3Visible = Var4Visible = Var5Visible = Var6Visible = Visibility.Hidden;
+						Var3Visible = Var4Visible = Var5Visible = Var6Visible = Var7Visible = Visibility.Hidden;
 					}
 					else if (SelectedJob is Script script)
 					{
@@ -99,14 +99,18 @@ namespace MonitorAndStart.v2.ViewModel
 						Var6Text = Script.Vars[4];
 						Var6 = script.runOnce;
 						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Var6Visible = Visibility.Visible;
-						Var5Visible = Visibility.Hidden;
+						Var5Visible = Var7Visible = Visibility.Hidden;
 					}
 					else if (SelectedJob is API api)
 					{
 						Var1Text = API.Vars[0];
+						Var2Text = API.Vars[1];
+						Var7Text = API.Vars[2];
 						Var1 = api.url;
-						Var1Visible = Visibility.Visible;
-						Var5Visible = Var2Visible = Var3Visible = Var4Visible = Var6Visible = Visibility.Hidden;
+						Var2 = api.cookies;
+						Var7 = api.output;
+						Var1Visible = Var2Visible = Var7Visible = Visibility.Visible;
+						Var5Visible = Var3Visible = Var4Visible = Var6Visible = Visibility.Hidden;
 					}
 					SelectedInterval = (int)SelectedJob.Interval;
 					switch (SelectedJob.Interval)
@@ -211,7 +215,10 @@ namespace MonitorAndStart.v2.ViewModel
 			}
 		}
 
-		private void ExecuteRunCurrentJob(object obj) => SelectedJob?.ExecuteJob(true);
+		private void ExecuteRunCurrentJob(object obj) 
+		{
+			SelectedJob?.ExecuteJob(true);
+		}
 
 		private void UpdateIntervalInMinutes()
 		{
@@ -289,21 +296,37 @@ namespace MonitorAndStart.v2.ViewModel
 					if (job.NextTimeToRun <= DateTime.Now)
 					{
 						job.ExecuteJob(false);
-						job.LastRun = DateTime.Now;
-						job.NextTimeToRun = DateTime.Now.AddMinutes(job.IntervalInMinutes);
+						UpdateTimesBasedOnType(job);
 
 						_mainDataProvider.UpdateRecord(job);
 					}
 					else if (start & job.RunOnStart)
 					{
 						job.ExecuteJob(true);
-						job.LastRun = DateTime.Now;
-						job.NextTimeToRun = DateTime.Now.AddMinutes(job.IntervalInMinutes);
+						UpdateTimesBasedOnType(job);
 
 						_mainDataProvider.UpdateRecord(job);
 					}
 				}
 				catch (Exception ex) { Libmiroppb.Log($"Error while executing job: {ex.Message}"); }
+			}
+		}
+
+		void UpdateTimesBasedOnType(Job job)
+		{
+			switch (job)
+			{
+				case File file when !file.runOnce:
+				case Script script when !script.runOnce:
+					job.UpdateTimes();
+					break;
+				case Stuck:
+				case API:
+				case Service:
+					job.UpdateTimes(); // Always update times for these types
+					break;
+				default: // Handle other types if necessary
+					break;
 			}
 		}
 
@@ -394,6 +417,8 @@ namespace MonitorAndStart.v2.ViewModel
 					(SelectedJob as Stuck)!.StuckLongerThanMinutes = int.Parse(Var2);
 				else if (SelectedJob is Script)
 					(SelectedJob as Script)!.parameters = Var2;
+				else if (SelectedJob is API)
+					(SelectedJob as API)!.cookies = Var2;
 
 				RaisePropertyChanged();
 			}
@@ -519,6 +544,33 @@ namespace MonitorAndStart.v2.ViewModel
 			}
 		}
 
+		private string _Var7Text = string.Empty;
+
+		public string Var7Text
+		{
+			get => _Var7Text;
+			set
+			{
+				_Var7Text = value;
+				RaisePropertyChanged();
+			}
+		}
+
+		private string _Var7 = string.Empty;
+
+		public string Var7
+		{
+			get => _Var7;
+			set
+			{
+				_Var7 = value;
+				if (SelectedJob is API)
+					(SelectedJob as API)!.output = Var7;
+
+				RaisePropertyChanged();
+			}
+		}
+
 		private Visibility _Var1Visible = Visibility.Hidden;
 
 		public Visibility Var1Visible
@@ -583,6 +635,18 @@ namespace MonitorAndStart.v2.ViewModel
 			set
 			{
 				_Var6Visible = value;
+				RaisePropertyChanged();
+			}
+		}
+
+		private Visibility _Var7Visible = Visibility.Hidden;
+
+		public Visibility Var7Visible
+		{
+			get => _Var7Visible;
+			set
+			{
+				_Var7Visible = value;
 				RaisePropertyChanged();
 			}
 		}

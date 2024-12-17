@@ -70,7 +70,7 @@ namespace MonitorAndStart.v2.Data
 							break;
 						case 4:
 							APIJson apj = JsonConvert.DeserializeObject<APIJson>(tempJob.Json)!;
-							result.Add(new API(tempJob.Name, apj.url, tempJob.Intervalinminutes, tempJob.Selectedinterval,
+							result.Add(new API(tempJob.Name, apj.url, apj.cookies, apj.output, tempJob.Intervalinminutes, tempJob.Selectedinterval,
 								tempJob.Lastrun, tempJob.Nexttimetorun, tempJob.RunOnStart)
 							{
 								Id = tempJob.Id,
@@ -139,7 +139,7 @@ namespace MonitorAndStart.v2.Data
 			}
 			else if (job is API api)
 			{
-				APIJson js = new() { url = api.url };
+				APIJson js = new() { url = api.url, cookies = api.cookies, output = api.output };
 				tempJob.Json = JsonConvert.SerializeObject(js);
 			}
 

@@ -119,10 +119,11 @@
                 <RowDefinition/>
                 <RowDefinition/>
                 <RowDefinition/>
+                <RowDefinition/>
             </Grid.RowDefinitions>
 
-            <TextBlock Text="{Binding ShowLastRun}" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Left"/>
-            <TextBlock Text="{Binding ShowNextRun}" Grid.Column="2" Grid.ColumnSpan="2" HorizontalAlignment="Right"/>
+            <TextBlock Text="{Binding ShowLastRun, UpdateSourceTrigger=PropertyChanged}" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Left"/>
+            <TextBlock Text="{Binding ShowNextRun, UpdateSourceTrigger=PropertyChanged}" Grid.Column="2" Grid.ColumnSpan="2" HorizontalAlignment="Right"/>
 
             <TextBlock Text="Name:" Grid.Row="1" Grid.Column="0"/>
             <TextBox x:Name="TxtName" Grid.Row="1" Grid.Column="1" Text="{Binding SelectedJob.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
@@ -132,37 +133,40 @@
 
             <TextBlock Text="{Binding Var2Text}" Grid.Column="0" Grid.Row="3" Visibility="{Binding Var2Visible}" Margin="0 0 5 0"/>
             <TextBox x:Name="TxtVar2" Grid.Column="1" Grid.Row="3" Text="{Binding Var2}" Visibility="{Binding Var2Visible}" />
+            
+            <TextBlock Text="{Binding Var7Text}" Grid.Column="0" Grid.Row="4" Visibility="{Binding Var7Visible}" Margin="0 0 5 0"/>
+            <TextBox x:Name="TxtVar7" Grid.Column="1" Grid.Row="4" Text="{Binding Var7}" Visibility="{Binding Var7Visible}" />
 
-            <TextBlock Text="{Binding Var3Text}" Grid.Column="0" Grid.Row="4" Visibility="{Binding Var3Visible}" Margin="0 0 5 0"/>
-            <CheckBox x:Name="ChkVar3" IsChecked="{Binding Var3, Mode=TwoWay}" Grid.Column="1"  Grid.Row="4" VerticalAlignment="Center" Visibility="{Binding Var3Visible}" />
+            <TextBlock Text="{Binding Var3Text}" Grid.Column="0" Grid.Row="5" Visibility="{Binding Var3Visible}" Margin="0 0 5 0"/>
+            <CheckBox x:Name="ChkVar3" IsChecked="{Binding Var3, Mode=TwoWay}" Grid.Column="1"  Grid.Row="5" VerticalAlignment="Center" Visibility="{Binding Var3Visible}" />
 
-            <TextBlock Text="{Binding Var4Text}" Grid.Column="0" Grid.Row="5" Visibility="{Binding Var4Visible}" Margin="0 0 5 0"/>
-            <CheckBox x:Name="ChkVar4" IsChecked="{Binding Var4, Mode=TwoWay}" Grid.Column="1"  Grid.Row="5" VerticalAlignment="Center" Visibility="{Binding Var4Visible}" />
+            <TextBlock Text="{Binding Var4Text}" Grid.Column="0" Grid.Row="6" Visibility="{Binding Var4Visible}" Margin="0 0 5 0"/>
+            <CheckBox x:Name="ChkVar4" IsChecked="{Binding Var4, Mode=TwoWay}" Grid.Column="1"  Grid.Row="6" VerticalAlignment="Center" Visibility="{Binding Var4Visible}" />
 
             <TextBlock Text="{Binding Var5Text}" Grid.Column="0" Grid.Row="2" Visibility="{Binding Var5Visible}"/>
             <ComboBox Grid.Row="2" Grid.Column="1" Margin="5,7,15,7" ItemsSource="{Binding Var5}" SelectedValue="{Binding SelectedVar5}" Visibility="{Binding Var5Visible}"/>
 
-            <TextBlock Text="{Binding Var6Text}" Grid.Column="2" Grid.Row="4" Visibility="{Binding Var6Visible}" Margin="0 0 5 0"/>
-            <CheckBox x:Name="ChkVar6" IsChecked="{Binding Var6, Mode=TwoWay}" Grid.Column="3"  Grid.Row="4" VerticalAlignment="Center" Visibility="{Binding Var6Visible}" />
+            <TextBlock Text="{Binding Var6Text}" Grid.Column="2" Grid.Row="5" Visibility="{Binding Var6Visible}" Margin="0 0 5 0"/>
+            <CheckBox x:Name="ChkVar6" IsChecked="{Binding Var6, Mode=TwoWay}" Grid.Column="3"  Grid.Row="5" VerticalAlignment="Center" Visibility="{Binding Var6Visible}" />
 
-            <TextBlock Text="Run On Start" Grid.Column="2" Grid.Row="5" Margin="0 0 5 0"/>
-            <CheckBox IsChecked="{Binding RunOnStart, Mode=TwoWay}" Grid.Column="3"  Grid.Row="5" VerticalAlignment="Center" />
+            <TextBlock Text="Run On Start" Grid.Column="2" Grid.Row="6" Margin="0 0 5 0"/>
+            <CheckBox IsChecked="{Binding RunOnStart, Mode=TwoWay}" Grid.Column="3"  Grid.Row="6" VerticalAlignment="Center" />
 
-            <TextBlock Text="Interval" Grid.Column="0" Grid.Row="6" Margin="0 0 5 0"/>
-            <TextBox x:Name="Interval" Grid.Column="1" Grid.Row="6" Text="{Binding IntervalInMinutes}" Width="60" />
-            <ComboBox Grid.Column="1" Grid.Row="6" Margin="70,7,10,7" ItemsSource="{Binding Intervals}" SelectedIndex="{Binding SelectedInterval}"/>
+            <TextBlock Text="Interval" Grid.Column="0" Grid.Row="7" Margin="0 0 5 0"/>
+            <TextBox x:Name="Interval" Grid.Column="1" Grid.Row="7" Text="{Binding IntervalInMinutes}" Width="60" />
+            <ComboBox Grid.Column="1" Grid.Row="7" Margin="70,7,10,7" ItemsSource="{Binding Intervals}" SelectedIndex="{Binding SelectedInterval}"/>
 
-            <TextBlock Text="Starting From:" Grid.Column="0" Grid.Row="7" Margin="0 0 5 0" />
-            <xctk:DateTimePicker HorizontalAlignment="Left" Name="DateTimePicker1" VerticalAlignment="Center" Width="270" Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" Value="{Binding StartDate, Mode=TwoWay}"/>
+            <TextBlock Text="Starting From:" Grid.Column="0" Grid.Row="8" Margin="0 0 5 0" />
+            <xctk:DateTimePicker HorizontalAlignment="Left" Name="DateTimePicker1" VerticalAlignment="Center" Width="270" Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2" Value="{Binding StartDate, Mode=TwoWay}"/>
 
-            <Grid Grid.Column="1" Grid.Row="8">
+            <Grid Grid.Column="1" Grid.Row="9">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
 
-                <Button Content="Save" Command="{Binding SaveJob}" Grid.Column="0" Margin="10" />
-                <Button Content="Run Job" Command="{Binding RunJob}" Grid.Column="1" Margin="10" />
+                <Button Content="Save" Command="{Binding SaveJob}" Grid.Column="0" Margin="10 8" />
+                <Button Content="Run Job" Command="{Binding RunJob}" Grid.Column="1" Margin="10 8" />
             </Grid>
             
         </Grid>

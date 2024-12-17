@@ -39,6 +39,7 @@ namespace MonitorAndStart.v2
 		{
 			if (force | (!force & runOnce & !alreadyRan) && Enabled)
 			{
+				CompletedSuccess = false;
 				alreadyRan = true;
 				Libmiroppb.Log($"Checking if '{Path.GetFileName(filename)}' is running...");
 				if (!ProgramIsRunning(filename))
@@ -52,13 +53,15 @@ namespace MonitorAndStart.v2
 							ProcessRunner.ExecuteProcessUnElevated(filename, parameters);
 						Libmiroppb.Log($"'{Path.GetFileName(filename)}' has been restarted");
 
-						LastRun = DateTime.Now;
-						NextTimeToRun = DateTime.Now.AddMinutes(IntervalInMinutes);
+						CompletedSuccess = true;
+						return;
 					}
 					catch (Exception ex)
 					{
 						Libmiroppb.Log($"Error starting '{Path.GetFileName(filename)}'. Message: {ex.Message}");
+						CompletedSuccess = false;
 					}
+					return;
 				}
 				else if (restart)
 				{
@@ -84,15 +87,18 @@ namespace MonitorAndStart.v2
 							ProcessRunner.ExecuteProcessUnElevated(filename, parameters);
 						Libmiroppb.Log($"'{Path.GetFileName(filename)}' has been restarted");
 
-						LastRun = DateTime.Now;
-						NextTimeToRun = DateTime.Now.AddMinutes(IntervalInMinutes);
+						CompletedSuccess = true;
+						return;
 					}
 					catch (Exception ex)
 					{
 						Libmiroppb.Log($"Error starting '{Path.GetFileName(filename)}'. Message: {ex.Message}");
+						CompletedSuccess = false;
+						return;
 					}
 				}
 			}
+			CompletedSuccess = true;
 		}
 
 		private static bool ProgramIsRunning(string FullPath)

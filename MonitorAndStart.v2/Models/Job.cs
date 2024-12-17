@@ -20,6 +20,15 @@ namespace MonitorAndStart.v2
 		}
 		public abstract int TypeOfJob { get; }
 		public abstract void ExecuteJob(bool force);
+		public void UpdateTimes()
+		{
+			LastRun = DateTime.Now;
+			if (CompletedSuccess)
+				while (NextTimeToRun < DateTime.Now)
+					NextTimeToRun = NextTimeToRun.AddMinutes(IntervalInMinutes);
+			else
+				NextTimeToRun = DateTime.Now.AddMinutes(5);
+		}
 
 		public DateTime NextTimeToRun { get; set; }
 		public string Name { get; set; } = string.Empty;
@@ -27,5 +36,6 @@ namespace MonitorAndStart.v2
 		public int IntervalInMinutes { get; set; }
 		public Intervals Interval { get; set; }
 		public bool RunOnStart { get; set; }
+		public bool CompletedSuccess = false;
 	}
 }

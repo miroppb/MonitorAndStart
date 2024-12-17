@@ -37,6 +37,7 @@ namespace MonitorAndStart.v2
 		{
 			if (force | (!force & runOnce & !alreadyRan) && Enabled)
 			{
+				CompletedSuccess = false;
 				alreadyRan = true;
 				ProcessWindowStyle ws = runHidden ? ProcessWindowStyle.Minimized : ProcessWindowStyle.Normal;
 
@@ -66,14 +67,16 @@ namespace MonitorAndStart.v2
 						NextTimeToRun = DateTime.Now.AddMinutes(IntervalInMinutes);
 					}
 					p.Dispose();
-
+					CompletedSuccess = true;
+					return;
 				}
 				catch (Exception ex)
 				{
 					Libmiroppb.Log($"Error starting '{filename}'. Message: {ex.Message}");
-					NextTimeToRun = DateTime.Now.AddMinutes(5);
+					CompletedSuccess = false;
 				}
 			}
+			CompletedSuccess = true;
 		}
 
 		private void P_OutputDataReceived(object sender, DataReceivedEventArgs e)

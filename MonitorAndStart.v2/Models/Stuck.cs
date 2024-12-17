@@ -29,6 +29,7 @@ namespace MonitorAndStart.v2
 		{
 			if (Enabled)
 			{
+				CompletedSuccess = false;
 				Libmiroppb.Log($"Checking if file exists and is past threshold: {Filename} {StuckLongerThanMinutes}...");
 
 				//check if file exists
@@ -40,14 +41,27 @@ namespace MonitorAndStart.v2
 						{
 							System.IO.File.Delete(Filename);
 							Libmiroppb.Log($"File {Filename} deleted");
+							CompletedSuccess = true;
 						}
 						catch (Exception ex)
 						{
 							Libmiroppb.Log($"Error deleting file: {Filename}, message: {ex.Message}");
+							CompletedSuccess = false;
 						}
 					}
+					else
+					{
+						CompletedSuccess = true;
+						return;
+					}
+				}
+				else
+				{
+					CompletedSuccess = false;
+					return;
 				}
 			}
+			CompletedSuccess = true;
 		}
 
 		private static bool IsAboveThreshold(string filename, double minutes)
