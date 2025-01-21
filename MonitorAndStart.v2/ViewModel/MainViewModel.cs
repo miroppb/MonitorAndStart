@@ -74,8 +74,8 @@ namespace MonitorAndStart.v2.ViewModel
 						Var5Text = File.Vars[1];
 						Var5 = Service.GetServices();
 						SelectedVar5 = service.ServiceName;
-						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Var6Visible = Visibility.Hidden;
-						Var5Visible = Var7Visible = Visibility.Visible;
+						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Var6Visible = Var7Visible = Visibility.Hidden;
+						Var5Visible = Visibility.Visible;
 					}
 					else if (SelectedJob is Stuck stuck)
 					{
