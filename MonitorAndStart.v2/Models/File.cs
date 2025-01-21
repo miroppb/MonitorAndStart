@@ -37,10 +37,9 @@ namespace MonitorAndStart.v2
 
 		public override void ExecuteJob(bool force)
 		{
-			if (force | (!force & runOnce & !alreadyRan) && Enabled)
+			if (ShouldRun(force))
 			{
 				CompletedSuccess = false;
-				alreadyRan = true;
 				Libmiroppb.Log($"Checking if '{Path.GetFileName(filename)}' is running...");
 				if (!ProgramIsRunning(filename))
 				{
@@ -54,6 +53,7 @@ namespace MonitorAndStart.v2
 						Libmiroppb.Log($"'{Path.GetFileName(filename)}' has been restarted");
 
 						CompletedSuccess = true;
+						alreadyRan = true;
 						return;
 					}
 					catch (Exception ex)
@@ -88,6 +88,7 @@ namespace MonitorAndStart.v2
 						Libmiroppb.Log($"'{Path.GetFileName(filename)}' has been restarted");
 
 						CompletedSuccess = true;
+						alreadyRan = true;
 						return;
 					}
 					catch (Exception ex)
@@ -123,6 +124,14 @@ namespace MonitorAndStart.v2
 			catch (Exception ex) { Libmiroppb.Log("Error: " + ex.Message); }
 			Libmiroppb.Log("Returning: " + isRunning.ToString());
 			return isRunning;
+		}
+
+		private bool ShouldRun(bool ForceRun)
+		{
+			if (ForceRun) return true; // Force run overrides all other conditions
+			if (!Enabled) return false; // Job is disabled
+			if (runOnce && alreadyRan) return false; // Job should run only once and has already run
+			return true; // Default case: job should run
 		}
 	}
 }

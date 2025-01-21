@@ -122,8 +122,8 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
 
-            <TextBlock Text="{Binding ShowLastRun, UpdateSourceTrigger=PropertyChanged}" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Left"/>
-            <TextBlock Text="{Binding ShowNextRun, UpdateSourceTrigger=PropertyChanged}" Grid.Column="2" Grid.ColumnSpan="2" HorizontalAlignment="Right"/>
+            <TextBlock Text="{Binding ShowLastRun, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Left"/>
+            <TextBlock Text="{Binding ShowNextRun, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Grid.Column="2" Grid.ColumnSpan="2" HorizontalAlignment="Right"/>
 
             <TextBlock Text="Name:" Grid.Row="1" Grid.Column="0"/>
             <TextBox x:Name="TxtName" Grid.Row="1" Grid.Column="1" Text="{Binding SelectedJob.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>

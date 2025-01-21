@@ -35,10 +35,9 @@ namespace MonitorAndStart.v2
 
 		public override void ExecuteJob(bool force)
 		{
-			if (force | (!force & runOnce & !alreadyRan) && Enabled)
+			if (ShouldRun(force))
 			{
 				CompletedSuccess = false;
-				alreadyRan = true;
 				ProcessWindowStyle ws = runHidden ? ProcessWindowStyle.Minimized : ProcessWindowStyle.Normal;
 
 				try
@@ -68,21 +67,30 @@ namespace MonitorAndStart.v2
 					}
 					p.Dispose();
 					CompletedSuccess = true;
+					alreadyRan = true;
 					return;
 				}
 				catch (Exception ex)
 				{
 					Libmiroppb.Log($"Error starting '{filename}'. Message: {ex.Message}");
 					CompletedSuccess = false;
+					return;
 				}
 			}
-			CompletedSuccess = true;
 		}
 
 		private void P_OutputDataReceived(object sender, DataReceivedEventArgs e)
 		{
 			if (e != null && e.Data != null)
 				Libmiroppb.Log(e.Data);
+		}
+
+		private bool ShouldRun(bool ForceRun)
+		{
+			if (ForceRun) return true; // Force run overrides all other conditions
+			if (!Enabled) return false; // Job is disabled
+			if (runOnce && alreadyRan) return false; // Job should run only once and has already run
+			return true; // Default case: job should run
 		}
 	}
 }

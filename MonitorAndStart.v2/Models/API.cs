@@ -36,40 +36,44 @@ namespace MonitorAndStart.v2.Models
 			if (Enabled)
 			{
 				Libmiroppb.Log($"Calling API: {url}");
-				HttpClientHandler httpHandler = new();
-				HttpClient client = new(httpHandler)
+				try
 				{
-					BaseAddress = new(url)
-				};
-				if (cookies.Length > 0)
-				{
-					CookieContainer cookieContainer = new();
-					httpHandler.CookieContainer = cookieContainer;
-					var _cookies = cookies.Split([';'], StringSplitOptions.RemoveEmptyEntries);
-					foreach (var cookie in _cookies)
+					HttpClientHandler httpHandler = new();
+					HttpClient client = new(httpHandler)
 					{
-						var cookieParts = cookie.Split('=', 2);
-						if (cookieParts.Length == 2)
+						BaseAddress = new(url)
+					};
+					if (cookies.Length > 0)
+					{
+						CookieContainer cookieContainer = new();
+						httpHandler.CookieContainer = cookieContainer;
+						var _cookies = cookies.Split([';'], StringSplitOptions.RemoveEmptyEntries);
+						foreach (var cookie in _cookies)
 						{
-							string name = cookieParts[0].Trim();
-							string value = cookieParts[1].Trim();
-							cookieContainer.Add(client.BaseAddress, new Cookie(name, value));
+							var cookieParts = cookie.Split('=', 2);
+							if (cookieParts.Length == 2)
+							{
+								string name = cookieParts[0].Trim();
+								string value = cookieParts[1].Trim();
+								cookieContainer.Add(client.BaseAddress, new Cookie(name, value));
+							}
 						}
 					}
-				}
-				var response = await client.GetAsync("");
-				if (response.IsSuccessStatusCode)
-				{
-					if (output.Length > 0)
+					var response = await client.GetAsync("");
+					if (response.IsSuccessStatusCode)
 					{
-						StreamWriter w = new(output);
-						w.Write(await response.Content.ReadAsStringAsync());
-						w.Close();
+						if (output.Length > 0)
+						{
+							StreamWriter w = new(output);
+							w.Write(await response.Content.ReadAsStringAsync());
+							w.Close();
+						}
+						CompletedSuccess = true;
+						return;
 					}
-					CompletedSuccess = true;
 					return;
 				}
-				return;
+				catch (Exception ex) { Libmiroppb.Log($"Error: {ex.Message}"); CompletedSuccess = false; return; }
 			}
 			CompletedSuccess = true;
 			return; //will always succeed. TODO: Check for errors
