@@ -1,11 +1,10 @@
 ﻿using miroppb;
-using MonitorAndStart.v2.Enums;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace MonitorAndStart.v2.Models
 {
@@ -15,15 +14,10 @@ namespace MonitorAndStart.v2.Models
 		public string cookies;
 		public string output;
 
-		public API(string _Name, string _Url, string _Cookies, string _Output, int _IntervalInMinutes, Intervals _SelectedInterval, DateTime _LastRan, DateTime _NextTimeToRun, bool _RunOnStart)
+		public API(string _Name, string _Url, string _Cookies, string _Output)
 		{
 			Name = _Name;
 			url = _Url;
-			IntervalInMinutes = _IntervalInMinutes;
-			Interval = _SelectedInterval;
-			LastRun = _LastRan;
-			NextTimeToRun = _NextTimeToRun;
-			RunOnStart = _RunOnStart;
 			cookies = _Cookies;
 			output = _Output;
 		}
@@ -31,7 +25,7 @@ namespace MonitorAndStart.v2.Models
 
 		public static List<string> Vars => new() { "URL", "Cookie(s)", "Output" };
 
-		public async override void ExecuteJob(bool force = false)
+		public async override Task ExecuteJob(bool force = false)
 		{
 			if (Enabled)
 			{
@@ -43,7 +37,8 @@ namespace MonitorAndStart.v2.Models
 					{
 						BaseAddress = new(url)
 					};
-					if (cookies.Length > 0)
+                    Libmiroppb.Log($"Setting cookies, if exist");
+                    if (cookies.Length > 0)
 					{
 						CookieContainer cookieContainer = new();
 						httpHandler.CookieContainer = cookieContainer;
@@ -59,24 +54,36 @@ namespace MonitorAndStart.v2.Models
 							}
 						}
 					}
-					var response = await client.GetAsync("");
+                    Libmiroppb.Log($"Making the call");
+                    var response = await client.GetAsync("");
 					if (response.IsSuccessStatusCode)
 					{
-						if (output.Length > 0)
+                        Libmiroppb.Log($"Success");
+                        if (output.Length > 0)
 						{
-							StreamWriter w = new(output);
+                            Libmiroppb.Log($"Writing output");
+                            StreamWriter w = new(output);
 							w.Write(await response.Content.ReadAsStringAsync());
 							w.Close();
-						}
+                            Libmiroppb.Log($"Done writing");
+                        }
 						CompletedSuccess = true;
-						return;
+                        Libmiroppb.Log($"Returning with completed Success");
+                        return;
+					}
+					else
+					{
+						Console.WriteLine($"Failed calling api. Reason: {response.StatusCode}");
+						Libmiroppb.Log($"Failed calling api. Reason: {response.StatusCode}");
 					}
 					return;
 				}
 				catch (Exception ex) { Libmiroppb.Log($"Error: {ex.Message}"); CompletedSuccess = false; return; }
 			}
 			CompletedSuccess = true;
-			return; //will always succeed. TODO: Check for errors
+			return;
 		}
+
+		public override string ToString => $"URL: {url} Cookies {cookies.Length > 0} Output: {output}";
 	}
 }

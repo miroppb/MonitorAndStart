@@ -32,7 +32,7 @@ namespace MonitorAndStart.v2.Validation
 
 				// Add cases for other Job implementations if needed
 				default:
-					return (false, "Unknown job type");
+					return (true, "Unknown job type");
 			}
 		}
 

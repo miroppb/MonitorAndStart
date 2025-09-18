@@ -1,6 +1,4 @@
-﻿using System;
-using Dapper.Contrib.Extensions;
-using MonitorAndStart.v2.Enums;
+﻿using Dapper.Contrib.Extensions;
 
 namespace MonitorAndStart.v2.Models
 {
@@ -13,11 +11,6 @@ namespace MonitorAndStart.v2.Models
 		public string PcName { get; set; } = string.Empty;
 		public int Type { get; set; }
 		public string Name { get; set; } = string.Empty;
-		public int Intervalinminutes { get; set; }
-		public Intervals Selectedinterval { get; set; }
-		public DateTime Nexttimetorun { get; set; }
-		public DateTime Lastrun { get; set; }
-		public bool RunOnStart { get; set; }
 		public string Json { get; set; } = string.Empty;
 	}
 }

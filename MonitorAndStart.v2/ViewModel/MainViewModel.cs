@@ -1,4 +1,5 @@
-﻿using Hardcodet.Wpf.TaskbarNotification;
+﻿using AutoUpdaterDotNET;
+using Hardcodet.Wpf.TaskbarNotification;
 using miroppb;
 using MonitorAndStart.v2.Command;
 using MonitorAndStart.v2.Data;
@@ -14,17 +15,21 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 namespace MonitorAndStart.v2.ViewModel
 {
 	public class MainViewModel : ClosableViewModel, INotifyPropertyChanged
 	{
 		private readonly IMainDataProvider _mainDataProvider;
+		private readonly INotificationProvider _notificationProvider;
 
 		public DelegateCommand AddNewJob { get; }
 		public DelegateCommand SaveJob { get; }
 		public DelegateCommand DeleteJob { get; }
 		public DelegateCommand RunJob { get; }
+		public DelegateCommand EditWorkflow { get; }
+		public DelegateCommand ShowSettingsWindow { get; }
 
 		public TaskbarIcon tbi;
 
@@ -41,11 +46,51 @@ namespace MonitorAndStart.v2.ViewModel
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 
-		public ObservableCollection<Job> Jobs { get; } = new();
+		public Settings? CurrentSettings { get; set; }
+
+		public ObservableCollection<Workflow> Workflows { get; } = new();
+
+		public static List<Job> AllJobs { get; } = new();
+
+		private Workflow? _SelectedWorkflow;
+
+		public Workflow? SelectedWorkflow
+		{
+			get => _SelectedWorkflow;
+			set
+			{
+				_SelectedWorkflow = value;
+				if (SelectedWorkflow != null)
+				{
+					Var1Visible = Var2Visible = Var3Visible = Var4Visible = Var5Visible = Var6Visible = Var7Visible = Var8Visible = Visibility.Hidden;
+					SelectedInterval = (int)SelectedWorkflow.SelectedInterval;
+					switch (SelectedWorkflow.SelectedInterval)
+					{
+						case Enums.Intervals.Minutes:
+							IntervalInMinutes = SelectedWorkflow.IntervalInMinutes;
+							break;
+						case Enums.Intervals.Hours:
+							IntervalInMinutes = SelectedWorkflow.IntervalInMinutes / 60;
+							break;
+						case Enums.Intervals.Days:
+							IntervalInMinutes = SelectedWorkflow.IntervalInMinutes / 60 / 24;
+							break;
+						case Enums.Intervals.Weeks:
+							IntervalInMinutes = SelectedWorkflow.IntervalInMinutes / 60 / 24 / 7;
+							break;
+					}
+					RunOnStart = SelectedWorkflow.RunOnStart;
+					StartDate = SelectedWorkflow.LastRun;
+					ShowLastRun = $"Last Run: {SelectedWorkflow.LastRun}";
+					ShowNextRun = $"Next Run: {SelectedWorkflow.NextTimeToRun}";
+				}
+				RaisePropertyChanged();
+			}
+		}
 
 		private Job? _SelectedJob;
 
-		public Job SelectedJob
+		public Job? SelectedJob
 		{
 			get => _SelectedJob!;
 			set
@@ -53,7 +98,6 @@ namespace MonitorAndStart.v2.ViewModel
 				_SelectedJob = value;
 				if (SelectedJob != null)
 				{
-					IsJobSelected = true;
 					if (SelectedJob is File file)
 					{
 						Var1Text = File.Vars[0];
@@ -66,7 +110,9 @@ namespace MonitorAndStart.v2.ViewModel
 						Var4 = file.runAsAdmin;
 						Var6Text = File.Vars[4];
 						Var6 = file.runOnce;
-						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Var6Visible = Visibility.Visible;
+						Var8Text = File.Vars[5];
+						Var8 = file.consoleApp;
+						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Var6Visible = Var8Visible = Visibility.Visible;
 						Var5Visible = Var7Visible = Visibility.Hidden;
 					}
 					else if (SelectedJob is Service service)
@@ -74,8 +120,8 @@ namespace MonitorAndStart.v2.ViewModel
 						Var5Text = File.Vars[1];
 						Var5 = Service.GetServices();
 						SelectedVar5 = service.ServiceName;
-						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Var6Visible = Var7Visible = Visibility.Hidden;
 						Var5Visible = Visibility.Visible;
+						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Var6Visible = Var7Visible = Var8Visible = Visibility.Hidden;
 					}
 					else if (SelectedJob is Stuck stuck)
 					{
@@ -84,7 +130,7 @@ namespace MonitorAndStart.v2.ViewModel
 						Var2Text = Stuck.Vars[1];
 						Var2 = stuck.StuckLongerThanMinutes.ToString();
 						Var1Visible = Var2Visible = Visibility.Visible;
-						Var3Visible = Var4Visible = Var5Visible = Var6Visible = Var7Visible = Visibility.Hidden;
+						Var3Visible = Var4Visible = Var5Visible = Var6Visible = Var7Visible = Var8Visible = Visibility.Hidden;
 					}
 					else if (SelectedJob is Script script)
 					{
@@ -99,7 +145,7 @@ namespace MonitorAndStart.v2.ViewModel
 						Var6Text = Script.Vars[4];
 						Var6 = script.runOnce;
 						Var1Visible = Var2Visible = Var3Visible = Var4Visible = Var6Visible = Visibility.Visible;
-						Var5Visible = Var7Visible = Visibility.Hidden;
+						Var5Visible = Var7Visible = Var8Visible = Visibility.Hidden;
 					}
 					else if (SelectedJob is API api)
 					{
@@ -110,45 +156,33 @@ namespace MonitorAndStart.v2.ViewModel
 						Var2 = api.cookies;
 						Var7 = api.output;
 						Var1Visible = Var2Visible = Var7Visible = Visibility.Visible;
-						Var5Visible = Var3Visible = Var4Visible = Var6Visible = Visibility.Hidden;
+						Var5Visible = Var3Visible = Var4Visible = Var6Visible = Var8Visible = Visibility.Hidden;
 					}
-					SelectedInterval = (int)SelectedJob.Interval;
-					switch (SelectedJob.Interval)
+					else if (SelectedJob is Pause pause)
 					{
-						case Enums.Intervals.Minutes:
-							IntervalInMinutes = SelectedJob.IntervalInMinutes;
-							break;
-						case Enums.Intervals.Hours:
-							IntervalInMinutes = SelectedJob.IntervalInMinutes / 60;
-							break;
-						case Enums.Intervals.Days:
-							IntervalInMinutes = SelectedJob.IntervalInMinutes / 60 / 24;
-							break;
-						case Enums.Intervals.Weeks:
-							IntervalInMinutes = SelectedJob.IntervalInMinutes / 60 / 24 / 7;
-							break;
+						Var1Text = Pause.Vars[0];
+						Var1Visible = Visibility.Visible;
+						Var2Visible = Var3Visible = Var4Visible = Var5Visible = Var6Visible = Var7Visible = Var8Visible = Visibility.Hidden;
 					}
-					RunOnStart = SelectedJob.RunOnStart;
-					StartDate = SelectedJob.LastRun;
-					ShowLastRun = $"Last Run: {SelectedJob.LastRun}";
-					ShowNextRun = $"Next Run: {SelectedJob.NextTimeToRun}";
-				}
-				else
-					IsJobSelected = false;
+                }
 
 				RaisePropertyChanged();
 			}
 		}
 
-		public MainViewModel(IMainDataProvider mainDataProvider, Window mainWindow, bool ShowTbi)
+		public MainViewModel(IMainDataProvider mainDataProvider, INotificationProvider notificationProvider, Window mainWindow, bool ShowTbi)
 		{
+			AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;
 			_mainDataProvider = mainDataProvider;
+			_notificationProvider = notificationProvider;
 			AddNewJob = new DelegateCommand(ExecuteAddNewJob, () => true);
 			SaveJob = new DelegateCommand(ExecuteSaveJob, () => true);
 			DeleteJob = new DelegateCommand(ExecuteDeleteJob, () => true);
 			RunJob = new DelegateCommand(ExecuteRunCurrentJob, () => true);
+			EditWorkflow = new DelegateCommand(ExecuteEditWorkflow, () => true);
+			ShowSettingsWindow = new DelegateCommand(ExecuteShowSettingsWindow, () => true);
 
-			MainWindow = mainWindow;
+            MainWindow = mainWindow;
 			_contextMenu = new ContextMenu();
 
 			MenuItem menuShowWindow = new()
@@ -173,11 +207,13 @@ namespace MonitorAndStart.v2.ViewModel
 				Visibility = ShowTbi ? Visibility.Visible : Visibility.Collapsed
 			};
 
+			GetSettings();
 			SetupTimer();
 			SetupUploadLogsTimer();
+			SetupUpdateTimer();
 		}
 
-		private void MenuExit_Click(object sender, RoutedEventArgs e)
+        private void MenuExit_Click(object sender, RoutedEventArgs e)
 		{
 			OnClosingRequest();
 		}
@@ -195,9 +231,14 @@ namespace MonitorAndStart.v2.ViewModel
 		{
 			if (SelectedJob != null)
 			{
+				if (_mainDataProvider.UpdateJob(SelectedJob))
+					MessageBox.Show("Saved");
+			}
+			else if (SelectedWorkflow != null)
+			{
 				UpdateIntervalInMinutes();
-				SelectedJob.NextTimeToRun = SelectedJob.LastRun.AddMinutes(SelectedJob.IntervalInMinutes);
-				if (_mainDataProvider.UpdateRecord(SelectedJob))
+				SelectedWorkflow.NextTimeToRun = SelectedWorkflow.LastRun.AddMinutes(SelectedWorkflow.IntervalInMinutes);
+				if (_mainDataProvider.UpdateWorkflow(SelectedWorkflow))
 					MessageBox.Show("Saved");
 			}
 		}
@@ -208,38 +249,70 @@ namespace MonitorAndStart.v2.ViewModel
 			{
 				if (MessageBox.Show($"Delete job {SelectedJob.Name}?", "", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
 				{
-					_mainDataProvider.DeleteRecord(SelectedJob);
-					Jobs.Remove(SelectedJob);
-					SelectedJob = Jobs.LastOrDefault()!;
+					_mainDataProvider.DeleteJob(SelectedJob, SelectedWorkflow!.Id);
+					SelectedWorkflow!.Jobs.Remove(SelectedJob);
+					_mainDataProvider.UpdateWorkflow(SelectedWorkflow!);
+					SelectedJob = SelectedWorkflow!.Jobs.LastOrDefault()!;
+				}
+			}
+			if (SelectedWorkflow != null)
+			{
+				if (MessageBox.Show($"Delete workflow {SelectedWorkflow.Name}?", "", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+				{
+					bool UnusedJobs = MessageBox.Show("Delete jobs that aren't used anywhere else?", "", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes;
+					_mainDataProvider.DeleteWorkflow(SelectedWorkflow, UnusedJobs);
+					Workflows.Remove(SelectedWorkflow);
+					SelectedWorkflow = Workflows.LastOrDefault();
 				}
 			}
 		}
 
-		private void ExecuteRunCurrentJob(object obj) 
+		private void ExecuteRunCurrentJob(object obj)
 		{
-			SelectedJob?.ExecuteJob(true);
+			if (SelectedJob != null && SelectedJob.Enabled)
+				SelectedJob.ExecuteJob(true);
+			else if (SelectedJob != null && !SelectedJob.Enabled)
+				MessageBox.Show("Current job is disabled. Please enable it before running.");
+			if (SelectedWorkflow != null)
+			{
+				if (SelectedWorkflow.Jobs.Any(x => !x.Enabled))
+					MessageBox.Show("Some jobs are disabled in this workflow. They will not run.");
+				_ = ExecuteWorkflowJobsAndUpdateTimes(SelectedWorkflow, true);
+			}
+		}
+
+		private async void ExecuteShowSettingsWindow(object obj)
+		{
+			SettingsWindow settingsWindow = new();
+			settingsWindow.ShowDialog();
+			CurrentSettings = await _mainDataProvider.GetSettings();
 		}
 
 		private void UpdateIntervalInMinutes()
 		{
-			switch (SelectedJob.Interval)
+			switch (SelectedWorkflow!.SelectedInterval)
 			{
 				case Enums.Intervals.Minutes:
-					SelectedJob.IntervalInMinutes = IntervalInMinutes;
+					SelectedWorkflow.IntervalInMinutes = IntervalInMinutes;
 					break;
 				case Enums.Intervals.Hours:
-					SelectedJob.IntervalInMinutes = IntervalInMinutes * 60;
+					SelectedWorkflow.IntervalInMinutes = IntervalInMinutes * 60;
 					break;
 				case Enums.Intervals.Days:
-					SelectedJob.IntervalInMinutes = IntervalInMinutes * 60 * 24;
+					SelectedWorkflow.IntervalInMinutes = IntervalInMinutes * 60 * 24;
 					break;
 				case Enums.Intervals.Weeks:
-					SelectedJob.IntervalInMinutes = IntervalInMinutes * 60 * 24 * 7;
+					SelectedWorkflow.IntervalInMinutes = IntervalInMinutes * 60 * 24 * 7;
 					break;
 			}
 		}
 
-		private void SetupTimer()
+        private async void GetSettings()
+        {
+            CurrentSettings = await _mainDataProvider.GetSettings();
+        }
+
+        private void SetupTimer()
 		{
 			int minutes = 1;
 			Libmiroppb.Log($"Setting up the Timer for every {minutes} minutes");
@@ -263,76 +336,119 @@ namespace MonitorAndStart.v2.ViewModel
 
 		private async static void UploadLogs(bool deleteAfter) => await Libmiroppb.UploadLogAsync(Secrets.GetConnectionString().ConnectionString, deleteAfter);
 
+		private static void SetupUpdateTimer()
+		{
+			int minutes = 60;
+			Libmiroppb.Log($"Setting up the Updater for every {minutes} minutes");
+			DispatcherTimer timer = new() { Interval = TimeSpan.FromMinutes(minutes) };
+			timer.Tick += delegate
+			{
+				CheckUpdate();
+			};
+			timer.Start();
+
+			CheckUpdate();
+
+		}
+
+		private async void AutoUpdater_ApplicationExitEvent()
+		{
+			Libmiroppb.Log("Update available");
+			await Task.Delay(2000);
+			Application.Current.Shutdown();
+		}
+
 		internal async Task LoadAsync()
 		{
-			if (Jobs.Any())
-				Jobs.Clear();
+			if (Workflows.Any())
+				Workflows.Clear();
+			if (AllJobs.Count != 0)
+				AllJobs.Clear();
 
-			IEnumerable<Job>? jobs = await TryGetJobsAsync();
-			jobs?.ToList().ForEach(Jobs.Add);
+			var work_jobs = await TryGetWorkflowsAsync();
+			work_jobs.Item1?.ToList().ForEach(Workflows.Add);
+			work_jobs.Item2?.ToList().ForEach(AllJobs.Add);
 		}
 
-		private async Task<IEnumerable<Job>?> TryGetJobsAsync()
+		private async Task<(IEnumerable<Workflow>?, IEnumerable<Job>?)> TryGetWorkflowsAsync()
 		{
+			IEnumerable<Workflow>? workflows = null;
 			IEnumerable<Job>? jobs = null;
-			while (jobs == null)
+			while (workflows == null && jobs == null)
 			{
-				jobs = await _mainDataProvider.GetJobsAsync();
-				if (jobs == null)
+				var results = await _mainDataProvider.GetWorkflowsAndJobsAsync();
+				workflows = results.Item1;
+				jobs = results.Item2;
+				if (workflows == null)
 					await Task.Delay(TimeSpan.FromHours(1));
 				else
-					SelectedJob = jobs.First();
+					SelectedWorkflow = workflows.FirstOrDefault();
+
+				if (jobs == null)
+					await Task.Delay(TimeSpan.FromHours(1));
 			}
-			return jobs;
+			return (workflows, jobs);
 		}
 
-
-        internal void ExecuteTasks(bool start)
+		internal void ExecuteTasks(bool start)
 		{
-			foreach (Job job in Jobs)
+			foreach (Workflow workflow in Workflows.Where(x => x.Enabled))
 			{
 				try
 				{
-					if (job.NextTimeToRun <= DateTime.Now)
+					if (workflow.NextTimeToRun <= DateTime.Now)
 					{
-						job.ExecuteJob(false);
-						UpdateTimesBasedOnType(job);
-
-						_mainDataProvider.UpdateRecord(job);
+						_ = ExecuteWorkflowJobsAndUpdateTimes(workflow, false);
 					}
-					else if (start & job.RunOnStart)
+					else if (start & workflow.RunOnStart)
 					{
-						job.ExecuteJob(true);
-						UpdateTimesBasedOnType(job);
-
-						_mainDataProvider.UpdateRecord(job);
-					}
+                        _ = ExecuteWorkflowJobsAndUpdateTimes(workflow, true);
+                    }
 				}
 				catch (Exception ex) { Libmiroppb.Log($"Error while executing job: {ex.Message}"); }
 			}
 		}
 
-		void UpdateTimesBasedOnType(Job job)
+		private async Task ExecuteWorkflowJobsAndUpdateTimes(Workflow workflow, bool force)
 		{
-			switch (job)
+			if (!workflow.IsRunning)
 			{
-				case File file when !file.runOnce:
-				case Script script when !script.runOnce:
-					job.UpdateTimes();
-					break;
-				case Stuck:
-				case API:
-				case Service:
-					job.UpdateTimes(); // Always update times for these types
-					break;
-				default: // Handle other types if necessary
-					break;
+                workflow.IsRunning = true;
+                foreach (Job job in workflow.Jobs)
+				{
+					await job.ExecuteJob(force);
+					Libmiroppb.Log($"Job {job.Name} completed: {job.CompletedSuccess}");
+				}
+				workflow.CompletedSuccess = workflow.Jobs.All(x => x.CompletedSuccess);
+				Libmiroppb.Log($"Workflow {workflow.Name} completed: {workflow.CompletedSuccess}");
+				if (CurrentSettings != null && workflow.Notify)
+					await _notificationProvider.SendNotification(
+						CurrentSettings!.NotificationEngine,
+						CurrentSettings.APIChannel,
+						$"{workflow.Name} has finished running. Result: {(workflow.CompletedSuccess ? "Success" : "Failed")}"
+					);
+				if (!workflow.CompletedSuccess)
+				{
+					int minutes = 5;
+					Libmiroppb.Log($"Retrying workflow {workflow.Name} in {minutes} minutes");
+					await Task.Delay(TimeSpan.FromMinutes(minutes));
+					Libmiroppb.Log($"{minutes} minutes passed");
+					await ExecuteWorkflowJobsAndUpdateTimes(workflow, force); //don't update time twice
+				}
+				else
+				{
+					workflow.UpdateTimes();
+					_mainDataProvider.UpdateWorkflow(workflow);
+				}
+				workflow.IsRunning = false;
 			}
+			else
+				Libmiroppb.Log($"Workflow {workflow.Name} is still running...");
 		}
 
 		private async void ExecuteAddNewJob(object a)
 		{
-			AddNewWindow win = new(this);
+			WorkflowWindow win = new(this);
 			win.ShowDialog();
 			await LoadAsync();
 		}
@@ -340,7 +456,25 @@ namespace MonitorAndStart.v2.ViewModel
 		internal void InsertNewJob(Job? obj)
 		{
 			if (obj != null)
-				_mainDataProvider.InsertRecord(obj);
+				_mainDataProvider.InsertJob(obj);
+		}
+
+		private async void ExecuteEditWorkflow(object obj)
+		{
+			if (SelectedWorkflow != null)
+			{
+				WorkflowWindow WorkWin = new(this);
+				WorkWin._viewmodel.CurrentWorkflow = SelectedWorkflow;
+				WorkWin.ShowDialog();
+				await LoadAsync();
+			}
+		}
+
+		private static void CheckUpdate()
+		{
+			Libmiroppb.Log("Checking update");
+			AutoUpdater.UpdateMode = Mode.ForcedDownload;
+			AutoUpdater.Start(Secrets.UpdateURL);
 		}
 
 		public static ObservableCollection<string> Intervals => new() { "Weeks", "Days", "Hours", "Minutes" };
@@ -353,7 +487,7 @@ namespace MonitorAndStart.v2.ViewModel
 			set
 			{
 				_SelectedInterval = value;
-				SelectedJob.Interval = (Intervals)SelectedInterval;
+				SelectedWorkflow!.SelectedInterval = (Intervals)SelectedInterval;
 				RaisePropertyChanged();
 			}
 		}
@@ -386,8 +520,10 @@ namespace MonitorAndStart.v2.ViewModel
 					(SelectedJob as Script)!.filename = Var1;
 				else if (SelectedJob is API)
 					(SelectedJob as API)!.url = Var1;
+				else if (SelectedJob is Pause)
+					(SelectedJob as Pause)!.seconds = Convert.ToInt32(Var1);
 
-				RaisePropertyChanged();
+					RaisePropertyChanged();
 			}
 		}
 
@@ -571,7 +707,31 @@ namespace MonitorAndStart.v2.ViewModel
 			}
 		}
 
-		private Visibility _Var1Visible = Visibility.Hidden;
+        private string _Var8Text = string.Empty;
+
+        public string Var8Text
+        {
+            get => _Var8Text;
+            set
+            {
+                _Var8Text = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private bool _Var8;
+
+        public bool Var8
+        {
+            get => _Var8;
+            set
+            {
+                _Var8 = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private Visibility _Var1Visible = Visibility.Hidden;
 
 		public Visibility Var1Visible
 		{
@@ -651,7 +811,19 @@ namespace MonitorAndStart.v2.ViewModel
 			}
 		}
 
-		private bool _RunOnStart;
+        private Visibility _Var8Visible = Visibility.Hidden;
+
+        public Visibility Var8Visible
+        {
+            get => _Var8Visible;
+            set
+            {
+                _Var8Visible = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private bool _RunOnStart;
 
 		public bool RunOnStart
 		{
@@ -659,7 +831,7 @@ namespace MonitorAndStart.v2.ViewModel
 			set
 			{
 				_RunOnStart = value;
-				SelectedJob.RunOnStart = _RunOnStart;
+				SelectedWorkflow!.RunOnStart = _RunOnStart;
 				RaisePropertyChanged();
 			}
 		}
@@ -685,7 +857,7 @@ namespace MonitorAndStart.v2.ViewModel
 			set
 			{
 				_StartDate = value;
-				SelectedJob.LastRun = _StartDate!.Value;
+				SelectedWorkflow!.LastRun = _StartDate!.Value;
 				RaisePropertyChanged();
 			}
 		}
@@ -726,6 +898,6 @@ namespace MonitorAndStart.v2.ViewModel
 				RaisePropertyChanged();
 			}
 		}
-			
+
 	}
 }

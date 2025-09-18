@@ -1,8 +1,9 @@
 ﻿using miroppb;
-using MonitorAndStart.v2.Enums;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace MonitorAndStart.v2
 {
@@ -14,8 +15,9 @@ namespace MonitorAndStart.v2
 		public bool runHidden;
 		public bool runOnce;
 		bool alreadyRan;
+		bool IsRunning = false;
 
-		public Script(string _Name, string _Filename, string _Parameters, bool _RunAsAdmin, bool _RunHidden, bool _RunOnce, int _IntervalInMinutes, Intervals _SelectedInterval, DateTime _LastRan, DateTime _NextTimeToRun, bool _RunOnStart)
+		public Script(string _Name, string _Filename, string _Parameters, bool _RunAsAdmin, bool _RunHidden, bool _RunOnce)
 		{
 			Name = _Name;
 			filename = _Filename;
@@ -23,20 +25,16 @@ namespace MonitorAndStart.v2
 			runAsAdmin = _RunAsAdmin;
 			runHidden = _RunHidden;
 			runOnce = _RunOnce;
-			IntervalInMinutes = _IntervalInMinutes;
-			Interval = _SelectedInterval;
-			LastRun = _LastRan;
-			NextTimeToRun = _NextTimeToRun;
-			RunOnStart = _RunOnStart;
 		}
 		public override int TypeOfJob => 3;
 
 		public static List<string> Vars => new() { "Filename", "Parameters", "Run as Admin", "Run Hidden", "Run Once" };
 
-		public override void ExecuteJob(bool force)
+		public override Task ExecuteJob(bool force)
 		{
 			if (ShouldRun(force))
 			{
+				IsRunning = true;
 				CompletedSuccess = false;
 				ProcessWindowStyle ws = runHidden ? ProcessWindowStyle.Minimized : ProcessWindowStyle.Normal;
 
@@ -46,38 +44,57 @@ namespace MonitorAndStart.v2
 					p.StartInfo.FileName = filename;
 					p.StartInfo.Arguments = parameters;
 					p.StartInfo.Verb = runAsAdmin ? "runas" : ""; //the secret sauce?
-					p.StartInfo.WorkingDirectory = System.IO.Path.GetDirectoryName(filename);
+					p.StartInfo.WorkingDirectory = Path.GetDirectoryName(filename);
 					p.StartInfo.WindowStyle = ws;
 					if (ws == ProcessWindowStyle.Hidden)
 						p.StartInfo.CreateNoWindow = true;
 					p.StartInfo.RedirectStandardOutput = true;
+					p.StartInfo.RedirectStandardError = true;
 					p.StartInfo.UseShellExecute = false;
 					p.OutputDataReceived += P_OutputDataReceived;
-					p.Start();
-					Libmiroppb.Log($"'{filename}' has been started");
+					p.ErrorDataReceived += P_OutputDataReceived;
 
-					p.BeginOutputReadLine();
-					p.WaitForExit();
-					if (p.ExitCode != 0)
-						NextTimeToRun = DateTime.Now.AddMinutes(5);
-					else
+					try
 					{
-						LastRun = DateTime.Now;
-						NextTimeToRun = DateTime.Now.AddMinutes(IntervalInMinutes);
+						p.Start();
+						Libmiroppb.Log($"'{p.StartInfo.FileName}' has been started with arguments '{p.StartInfo.Arguments}'");
+
+						p.BeginOutputReadLine();
+						p.BeginErrorReadLine();
+						p.WaitForExit();
+
+						if (!p.StartInfo.Arguments.Contains("taskkill") && p.ExitCode != 0) //ignore taskkills
+						{
+							Libmiroppb.Log($"ExitCode {p.ExitCode}");
+							CompletedSuccess = false;
+						}
+						else
+						{
+							CompletedSuccess = true;
+						}
 					}
-					p.Dispose();
-					CompletedSuccess = true;
-					alreadyRan = true;
-					return;
+					catch (Exception ex)
+					{
+						Libmiroppb.Log($"Exception: {ex.Message}");
+						CompletedSuccess = false;
+					}
+					finally
+					{
+						p.Dispose();
+						alreadyRan = true;
+					}
 				}
 				catch (Exception ex)
 				{
 					Libmiroppb.Log($"Error starting '{filename}'. Message: {ex.Message}");
 					CompletedSuccess = false;
-					return;
 				}
-			}
-		}
+            }
+			if (!Enabled)
+				CompletedSuccess = true; //mark as completed even if disabled
+			IsRunning = false;
+            return Task.CompletedTask;
+        }
 
 		private void P_OutputDataReceived(object sender, DataReceivedEventArgs e)
 		{
@@ -87,10 +104,13 @@ namespace MonitorAndStart.v2
 
 		private bool ShouldRun(bool ForceRun)
 		{
-			if (ForceRun) return true; // Force run overrides all other conditions
-			if (!Enabled) return false; // Job is disabled
-			if (runOnce && alreadyRan) return false; // Job should run only once and has already run
+			if (!Enabled) { Libmiroppb.Log("Disabled..."); return false; } //job is disabled
+			if (IsRunning) { Libmiroppb.Log("Running..."); return false; } // Job is already running
+            if (ForceRun) return true; // Force run even if already
+            if (runOnce && alreadyRan) return false; // Job should run only once and has already run
 			return true; // Default case: job should run
 		}
+
+		public override string ToString => $"Filename: {Path.GetFileName(filename)} Parameters: {parameters.Length > 0} Admin: {runAsAdmin} Once: {runOnce}";
 	}
 }

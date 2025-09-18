@@ -1,0 +1,96 @@
+﻿<Window x:Class="MonitorAndStart.v2.WorkflowWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MonitorAndStart.v2" xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        mc:Ignorable="d"
+        Title="Workflow" Height="450" Width="800" WindowStartupLocation="CenterOwner">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition Width="100" />
+        </Grid.ColumnDefinitions>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="50" />
+                <RowDefinition Height="285" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Name:" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="0" />
+                <TextBox x:Name="TxtName" Text="{Binding CurrentWorkflow.Name, Mode=TwoWay}" Margin="10" Grid.Column="1" VerticalContentAlignment="Center" />
+            </Grid>
+
+            <ListView x:Name="LstItems" Margin="20,30,20,0" ItemsSource="{Binding Jobs}" SelectedItem="{Binding SelectedJob, Mode=TwoWay}" MouseDoubleClick="LstItems_MouseDoubleClick" Grid.Row="1">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14" />
+
+                            <TextBlock Text="{Binding ToString}" Grid.Column="1" Margin="20,0,0,0" VerticalAlignment="Center" />
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="Run on Start" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                <CheckBox IsChecked="{Binding RunOnStart, Mode=TwoWay}" Grid.Column="1"  Grid.Row="0" VerticalAlignment="Center" Margin="5,0,0,0" />
+                <TextBlock Text="Notify" Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="45,0,0,0"/>
+                <CheckBox IsChecked="{Binding Notify, Mode=TwoWay}" Grid.Column="2" VerticalAlignment="Center" Margin="85,0,0,0" />
+
+                <TextBlock Text="Interval" Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                <TextBox x:Name="Interval" Grid.Column="1" Grid.Row="1" Text="{Binding Interval}" Width="25" HorizontalAlignment="Left" Margin="5" VerticalContentAlignment="Center"/>
+                <ComboBox Grid.Column="1" Grid.Row="1" Margin="40,7,17,7" ItemsSource="{Binding Intervals}" SelectedIndex="{Binding SelectedInterval}"/>
+
+                <TextBlock Text="Starting From:" Grid.Column="2" Grid.Row="1" VerticalAlignment="Center" />
+                <xctk:DateTimePicker HorizontalAlignment="Left" Name="DateTimePicker1" Width="235" VerticalAlignment="Center" Margin="85,0,0,0" Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Value="{Binding StartDate, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <Button x:Name="BtnAdd" Content="Add" Margin="10,45,10,5" Command="{Binding AddCommand}"></Button>
+            <Button x:Name="BtnRemove" Content="Remove" Margin="10,5,10,45" Grid.Row="1" Command="{Binding RemoveCommand}"></Button>
+
+            <Button x:Name="BtnUp" Content="Up" Margin="10,10,10,40" Grid.Row="2" Command="{Binding UpCommand}"></Button>
+            <Button x:Name="BtnDown" Content="Down" Margin="10,45,10,5" Grid.Row="2" Command="{Binding DownCommand}"></Button>
+
+            <Button x:Name="BtnClose" Content="Close" Margin="10,25,10,25" Grid.Row="4" Command="{Binding CloseCommand}"></Button>
+        </Grid>
+    </Grid>
+</Window>

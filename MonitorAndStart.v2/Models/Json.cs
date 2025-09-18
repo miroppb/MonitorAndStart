@@ -7,6 +7,7 @@
 		public bool restart;
 		public bool runasadmin;
 		public bool runonce;
+		public bool consoleapp;
 	}
 
 	class ServiceJson
@@ -34,5 +35,10 @@
 		public string url = string.Empty;
 		public string cookies = string.Empty;
 		public string output = string.Empty;
+	}
+
+	class PauseJson
+	{
+		public int seconds;
 	}
 }

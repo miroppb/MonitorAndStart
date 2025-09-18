@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:MonitorAndStart.v2.Converter"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:tb="http://www.hardcodet.net/taskbar"
-        Title="MainWindow" Height="477" Width="831" Icon="/monitor.png" WindowStartupLocation="CenterScreen" WindowState="Minimized">
+        Title="Monitor and Start" Height="477" Width="831" Icon="/monitor.png" WindowStartupLocation="CenterScreen" WindowState="Minimized">
     <Window.Resources>
         <local:InvertedBooleanToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter" />
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
@@ -58,11 +58,27 @@
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
 
-                    <Button Command="{Binding AddNewJob}" Content="Add New Job" Grid.Column="0" Margin="10" />
-                    <Button Command="{Binding DeleteJob}" Content="Delete Job" Grid.Column="1" Margin="10" IsEnabled="{Binding IsJobSelected}" />
+                    <Button Command="{Binding AddNewJob}" Content="Add" Grid.Column="0" Margin="10" />
+                    <Button Command="{Binding DeleteJob}" Content="Delete" Grid.Column="1" Margin="10" />
                 </Grid>
 
-                <ListView x:Name="LstJobs" Grid.Row="1" Margin="5,0,5,5" ItemsSource="{Binding Jobs}" SelectedItem="{Binding SelectedJob, Mode=TwoWay}" SelectionMode="Single">
+                <TreeView ItemsSource="{Binding Workflows}" Grid.Row="1" Margin="5,0,5,5" SelectedItemChanged="TreeView_SelectedItemChanged">
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate ItemsSource="{Binding Jobs}">
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox IsChecked="{Binding Enabled, Mode=TwoWay}" />
+                                <TextBlock Text="{Binding Name}" Margin="5,0,0,0" />
+                            </StackPanel>
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="TreeViewItem">
+                            <EventSetter Event="MouseDoubleClick" Handler="TreeViewItem_MouseDoubleClick"/>
+                        </Style>
+                    </TreeView.ItemContainerStyle>
+                </TreeView>
+
+                <!--<ListView x:Name="LstJobs" Grid.Row="1" Margin="5,0,5,5" ItemsSource="{Binding Jobs}" SelectedItem="{Binding SelectedJob, Mode=TwoWay}" SelectionMode="Single">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
@@ -71,9 +87,10 @@
                             </StackPanel>
                         </DataTemplate>
                     </ListView.ItemTemplate>
-                </ListView>
+                </ListView>-->
 
-                <TextBlock Grid.Row="2" Text="{Binding Jobs.Count}" HorizontalAlignment="Center" />
+                <TextBlock Grid.Row="2" Text="{Binding Jobs.Count, FallbackValue='2 Items'}"  HorizontalAlignment="Center" Margin="100,0,10,0" />
+                <Button Content="Settings" Grid.Row="2" Command="{Binding ShowSettingsWindow}" Margin="10,0,100,0" />
             </Grid>
 
         </Grid>
@@ -126,30 +143,33 @@
             <TextBlock Text="{Binding ShowNextRun, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}" Grid.Column="2" Grid.ColumnSpan="2" HorizontalAlignment="Right"/>
 
             <TextBlock Text="Name:" Grid.Row="1" Grid.Column="0"/>
-            <TextBox x:Name="TxtName" Grid.Row="1" Grid.Column="1" Text="{Binding SelectedJob.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBox x:Name="TxtName" Grid.Row="1" Grid.Column="1" Text="{Binding SelectedJob.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
 
             <TextBlock Text="{Binding Var1Text}" Grid.Column="0" Grid.Row="2" Visibility="{Binding Var1Visible}" Margin="0 0 5 0"/>
-            <TextBox x:Name="TxtVar1" Grid.Column="1" Grid.Row="2" Text="{Binding Var1}" MouseLeftButtonDown="TxtVar1_MouseLeftButtonDown" Visibility="{Binding Var1Visible}"/>
+            <TextBox x:Name="TxtVar1" Grid.Column="1" Grid.Row="2" Text="{Binding Var1}" MouseLeftButtonDown="TxtVar1_MouseLeftButtonDown" Visibility="{Binding Var1Visible}" IsReadOnly="True" />
 
             <TextBlock Text="{Binding Var2Text}" Grid.Column="0" Grid.Row="3" Visibility="{Binding Var2Visible}" Margin="0 0 5 0"/>
-            <TextBox x:Name="TxtVar2" Grid.Column="1" Grid.Row="3" Text="{Binding Var2}" Visibility="{Binding Var2Visible}" />
+            <TextBox x:Name="TxtVar2" Grid.Column="1" Grid.Row="3" Text="{Binding Var2}" Visibility="{Binding Var2Visible}" IsReadOnly="True" />
             
             <TextBlock Text="{Binding Var7Text}" Grid.Column="0" Grid.Row="4" Visibility="{Binding Var7Visible}" Margin="0 0 5 0"/>
-            <TextBox x:Name="TxtVar7" Grid.Column="1" Grid.Row="4" Text="{Binding Var7}" Visibility="{Binding Var7Visible}" />
+            <TextBox x:Name="TxtVar7" Grid.Column="1" Grid.Row="4" Text="{Binding Var7}" Visibility="{Binding Var7Visible}" IsReadOnly="True" />
 
             <TextBlock Text="{Binding Var3Text}" Grid.Column="0" Grid.Row="5" Visibility="{Binding Var3Visible}" Margin="0 0 5 0"/>
-            <CheckBox x:Name="ChkVar3" IsChecked="{Binding Var3, Mode=TwoWay}" Grid.Column="1"  Grid.Row="5" VerticalAlignment="Center" Visibility="{Binding Var3Visible}" />
+            <CheckBox x:Name="ChkVar3" IsChecked="{Binding Var3, Mode=TwoWay}" Grid.Column="1"  Grid.Row="5" VerticalAlignment="Center" Visibility="{Binding Var3Visible}" IsEnabled="False" />
 
             <TextBlock Text="{Binding Var4Text}" Grid.Column="0" Grid.Row="6" Visibility="{Binding Var4Visible}" Margin="0 0 5 0"/>
-            <CheckBox x:Name="ChkVar4" IsChecked="{Binding Var4, Mode=TwoWay}" Grid.Column="1"  Grid.Row="6" VerticalAlignment="Center" Visibility="{Binding Var4Visible}" />
+            <CheckBox x:Name="ChkVar4" IsChecked="{Binding Var4, Mode=TwoWay}" Grid.Column="1"  Grid.Row="6" VerticalAlignment="Center" Visibility="{Binding Var4Visible}" IsEnabled="False" />
 
             <TextBlock Text="{Binding Var5Text}" Grid.Column="0" Grid.Row="2" Visibility="{Binding Var5Visible}"/>
-            <ComboBox Grid.Row="2" Grid.Column="1" Margin="5,7,15,7" ItemsSource="{Binding Var5}" SelectedValue="{Binding SelectedVar5}" Visibility="{Binding Var5Visible}"/>
+            <ComboBox Grid.Row="2" Grid.Column="1" Margin="5,7,15,7" ItemsSource="{Binding Var5}" SelectedValue="{Binding SelectedVar5}" Visibility="{Binding Var5Visible}" IsReadOnly="True" />
 
             <TextBlock Text="{Binding Var6Text}" Grid.Column="2" Grid.Row="5" Visibility="{Binding Var6Visible}" Margin="0 0 5 0"/>
-            <CheckBox x:Name="ChkVar6" IsChecked="{Binding Var6, Mode=TwoWay}" Grid.Column="3"  Grid.Row="5" VerticalAlignment="Center" Visibility="{Binding Var6Visible}" />
+            <CheckBox x:Name="ChkVar6" IsChecked="{Binding Var6, Mode=TwoWay}" Grid.Column="3"  Grid.Row="5" VerticalAlignment="Center" Visibility="{Binding Var6Visible}" IsEnabled="False" />
 
-            <TextBlock Text="Run On Start" Grid.Column="2" Grid.Row="6" Margin="0 0 5 0"/>
+            <TextBlock Text="{Binding Var8Text}" Grid.Column="2" Grid.Row="6" Visibility="{Binding Var8Visible}" Margin="0 0 5 0"/>
+            <CheckBox x:Name="ChkVar8" IsChecked="{Binding Var8, Mode=TwoWay}" Grid.Column="3"  Grid.Row="6" VerticalAlignment="Center" Visibility="{Binding Var8Visible}" IsEnabled="False" />
+
+            <!--<TextBlock Text="Run On Start" Grid.Column="2" Grid.Row="6" Margin="0 0 5 0"/>
             <CheckBox IsChecked="{Binding RunOnStart, Mode=TwoWay}" Grid.Column="3"  Grid.Row="6" VerticalAlignment="Center" />
 
             <TextBlock Text="Interval" Grid.Column="0" Grid.Row="7" Margin="0 0 5 0"/>
@@ -157,7 +177,7 @@
             <ComboBox Grid.Column="1" Grid.Row="7" Margin="70,7,10,7" ItemsSource="{Binding Intervals}" SelectedIndex="{Binding SelectedInterval}"/>
 
             <TextBlock Text="Starting From:" Grid.Column="0" Grid.Row="8" Margin="0 0 5 0" />
-            <xctk:DateTimePicker HorizontalAlignment="Left" Name="DateTimePicker1" VerticalAlignment="Center" Width="270" Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2" Value="{Binding StartDate, Mode=TwoWay}"/>
+            <xctk:DateTimePicker HorizontalAlignment="Left" Name="DateTimePicker1" VerticalAlignment="Center" Width="270" Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2" Value="{Binding StartDate, Mode=TwoWay}"/>-->
 
             <Grid Grid.Column="1" Grid.Row="9">
                 <Grid.ColumnDefinitions>
@@ -165,7 +185,7 @@
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
 
-                <Button Content="Save" Command="{Binding SaveJob}" Grid.Column="0" Margin="10 8" />
+                <!--<Button Content="Save" Command="{Binding SaveJob}" Grid.Column="0" Margin="10 8" />-->
                 <Button Content="Run Job" Command="{Binding RunJob}" Grid.Column="1" Margin="10 8" />
             </Grid>
             

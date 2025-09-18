@@ -8,11 +8,6 @@ namespace MonitorAndStart.v2
 	public class ProcessRunner
 	{
 		//epic thanks to https://stackoverflow.com/a/58646320
-		/// <summary>
-		/// We are elevated and should launch the process unelevated. We can't create the
-		/// process directly without it becoming elevated. So to workaround this, we have
-		/// explorer do the process creation (explorer is typically running unelevated).
-		/// </summary>
 		internal static void ExecuteProcessUnElevated(string process, string args)
 		{
 			string currentDirectory = Path.GetDirectoryName(process)!;

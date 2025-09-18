@@ -1,6 +1,5 @@
 ﻿using MonitorAndStart.v2.Data;
-using MonitorAndStart.v2.Enums;
-using System;
+using System.Threading.Tasks;
 
 namespace MonitorAndStart.v2
 {
@@ -15,27 +14,13 @@ namespace MonitorAndStart.v2
 			{
 				_Enabled = value;
 				MainDataProvider mainData = new();
-				mainData.UpdateRecord(this);
+				mainData.UpdateJob(this);
 			}
 		}
 		public abstract int TypeOfJob { get; }
-		public abstract void ExecuteJob(bool force);
-		public void UpdateTimes()
-		{
-			LastRun = DateTime.Now;
-			if (CompletedSuccess)
-				while (NextTimeToRun < DateTime.Now)
-					NextTimeToRun = NextTimeToRun.AddMinutes(IntervalInMinutes);
-			else
-				NextTimeToRun = DateTime.Now.AddMinutes(5);
-		}
-
-		public DateTime NextTimeToRun { get; set; }
+		public abstract Task ExecuteJob(bool force);
 		public string Name { get; set; } = string.Empty;
-		public DateTime LastRun { get; set; } = DateTime.Now;
-		public int IntervalInMinutes { get; set; }
-		public Intervals Interval { get; set; }
-		public bool RunOnStart { get; set; }
 		public bool CompletedSuccess = false;
+		public new abstract string ToString { get; }
 	}
 }

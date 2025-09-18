@@ -1,22 +1,23 @@
 ﻿using Microsoft.Win32;
 using MonitorAndStart.v2.ViewModel;
+using System.IO;
 using System.Windows;
 using System.Windows.Input;
 
 namespace MonitorAndStart.v2
 {
 	/// <summary>
-	/// Interaction logic for AddNewWindow.xaml
+	/// Interaction logic for JobWindow.xaml
 	/// </summary>
-	public partial class AddNewWindow : Window
+	public partial class JobWindow : Window
 	{
-		public readonly MainViewModel _viewmodel;
-		public readonly AddNewViewModel _addvm;
+		public readonly WorkflowViewModel _viewmodel;
+		public readonly JobViewModel _addvm;
 
-		public AddNewWindow(MainViewModel vm)
+		public JobWindow(WorkflowViewModel vm)
 		{
 			InitializeComponent();
-			_addvm = new AddNewViewModel(vm);
+			_addvm = new JobViewModel(vm, this);
 			_viewmodel = vm;
 			DataContext = _addvm;
 
@@ -31,7 +32,9 @@ namespace MonitorAndStart.v2
 			{
 				OpenFileDialog ofd = new()
 				{
-					Filter = "Application File|*.exe|Batch File|*.bat"
+					Filter = "Application File|*.exe|Batch File|*.bat",
+					InitialDirectory = Path.GetDirectoryName(_addvm.Var1),
+					FileName = _addvm.Var1
 				};
 				if (ofd.ShowDialog() == true)
 				{
@@ -42,8 +45,10 @@ namespace MonitorAndStart.v2
 			{
 				OpenFileDialog ofd = new()
 				{
-					Filter = "Any File|*.*"
-				};
+					Filter = "Any File|*.*",
+                    InitialDirectory = Path.GetDirectoryName(_addvm.Var1),
+                    FileName = _addvm.Var1
+                };
 				if (ofd.ShowDialog() == true)
 				{
 					_addvm.Var1 = ofd.FileName;
@@ -57,8 +62,10 @@ namespace MonitorAndStart.v2
 			{
 				SaveFileDialog ofd = new()
 				{
-					Filter = "Any File|*.*"
-				};
+					Filter = "Any File|*.*",
+                    InitialDirectory = Path.GetDirectoryName(_addvm.Var7),
+                    FileName = _addvm.Var7
+                };
 				if (ofd.ShowDialog() == true)
 				{
 					_addvm.Var7 = ofd.FileName;

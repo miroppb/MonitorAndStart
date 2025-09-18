@@ -1,7 +1,8 @@
 ﻿using miroppb;
-using MonitorAndStart.v2.Enums;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace MonitorAndStart.v2
 {
@@ -10,22 +11,17 @@ namespace MonitorAndStart.v2
 		public int StuckLongerThanMinutes;
 		public string Filename;
 
-		public Stuck(string _Name, string _Filename, int _StuckLongerThanMinutes, int _IntervalInMinutes, Intervals _SelectedInterval, DateTime _LastRan, DateTime _NextTimeToRun, bool _RunOnStart)
+		public Stuck(string _Name, string _Filename, int _StuckLongerThanMinutes)
 		{
 			Name = _Name;
 			Filename = _Filename;
 			StuckLongerThanMinutes = _StuckLongerThanMinutes;
-			IntervalInMinutes = _IntervalInMinutes;
-			Interval = _SelectedInterval;
-			LastRun = _LastRan;
-			NextTimeToRun = _NextTimeToRun;
-			RunOnStart = _RunOnStart;
 		}
 		public override int TypeOfJob => 2;
 
 		public static List<string> Vars => new() { "Filename", "Minutes Stuck" };
 
-		public override void ExecuteJob(bool force = false)
+		public override Task ExecuteJob(bool force = false)
 		{
 			if (Enabled)
 			{
@@ -47,22 +43,25 @@ namespace MonitorAndStart.v2
 						{
 							Libmiroppb.Log($"Error deleting file: {Filename}, message: {ex.Message}");
 							CompletedSuccess = false;
+							return Task.CompletedTask;
 						}
 					}
 					else
 					{
 						CompletedSuccess = true;
-						return;
 					}
 				}
 				else
 				{
 					CompletedSuccess = false;
-					return;
-				}
+                    return Task.CompletedTask;
+                }
 			}
 			CompletedSuccess = true;
-		}
+            return Task.CompletedTask;
+        }
+
+		public override string ToString => $"Filename: {Path.GetFileName(Filename)} Longer than: {StuckLongerThanMinutes}";
 
 		private static bool IsAboveThreshold(string filename, double minutes)
 		{

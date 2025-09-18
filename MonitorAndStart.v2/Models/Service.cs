@@ -1,5 +1,4 @@
 ﻿using miroppb;
-using MonitorAndStart.v2.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,21 +11,16 @@ namespace MonitorAndStart.v2
 	{
 		public string ServiceName;
 
-		public Service(string _Name, string _ServiceName, int _IntervalInMinutes, Intervals _SelectedInterval, DateTime _LastRan, DateTime _NextTimeToRun, bool _RunOnStart)
+		public Service(string _Name, string _ServiceName)
 		{
 			Name = _Name;
 			ServiceName = _ServiceName;
-			IntervalInMinutes = _IntervalInMinutes;
-			Interval = _SelectedInterval;
-			LastRun = _LastRan;
-			NextTimeToRun = _NextTimeToRun;
-			RunOnStart = _RunOnStart;
 		}
 		public override int TypeOfJob => 1;
 
 		public static List<string> Vars => new() { "Service" };
 
-		public override void ExecuteJob(bool force = false)
+		public override Task ExecuteJob(bool force = false)
 		{
 			if (Enabled)
 			{
@@ -50,20 +44,27 @@ namespace MonitorAndStart.v2
 						Libmiroppb.Log($"{ServiceName} restarted successfully");
 
 						CompletedSuccess = true;
-						return;
 					}
-					catch (Exception ex) { Libmiroppb.Log($"Failed to restart: {ex.Message}"); CompletedSuccess = false; }
+					catch (Exception ex)
+					{
+						Libmiroppb.Log($"Failed to restart: {ex.Message}");
+						CompletedSuccess = false;
+						return Task.CompletedTask;
+					}
 				}
 				catch
 				{
 					Libmiroppb.Log($"Restarting {ServiceName} Failed");
 					CompletedSuccess = false;
-					return;
+					return Task.CompletedTask;
 				}
 			}
 			CompletedSuccess = true;
+			return Task.CompletedTask;
 		}
 
 		public static List<string> GetServices() => ServiceController.GetServices().Select(x => x.ServiceName).ToList();
+
+		public override string ToString => $"Service: {ServiceName}";
 	}
 }
