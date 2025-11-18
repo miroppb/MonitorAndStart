@@ -1,4 +1,5 @@
 ﻿using miroppb;
+using MonitorAndStart.v2.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,17 +14,20 @@ namespace MonitorAndStart.v2.Models
 		public string url;
 		public string cookies;
 		public string output;
+		public bool NotifyOnFailureButComplete;
 
-		public API(string _Name, string _Url, string _Cookies, string _Output)
+
+		public API(string _Name, string _Url, string _Cookies, string _Output, bool _NotifyOnFailure)
 		{
 			Name = _Name;
 			url = _Url;
 			cookies = _Cookies;
 			output = _Output;
-		}
+			NotifyOnFailureButComplete = _NotifyOnFailure;
+        }
 		public override int TypeOfJob => 4;
 
-		public static List<string> Vars => new() { "URL", "Cookie(s)", "Output" };
+		public static List<string> Vars => new() { "URL", "Cookie(s)", "Output", "Notify on Fail but Complete" };
 
 		public async override Task ExecuteJob(bool force = false)
 		{
@@ -75,15 +79,43 @@ namespace MonitorAndStart.v2.Models
 					{
 						Console.WriteLine($"Failed calling api. Reason: {response.StatusCode}");
 						Libmiroppb.Log($"Failed calling api. Reason: {response.StatusCode}");
+						if (NotifyOnFailureButComplete)
+						{
+							CompletedSuccess = true;
+							MainDataProvider _mainDataProvider = new();
+							NotificationProvider _notificationProvider = new();
+                            Settings? CurrentSettings = await _mainDataProvider.GetSettings();
+                            await _notificationProvider.SendNotification(
+								CurrentSettings!.NotificationEngine,
+								CurrentSettings.APIChannel,
+								$"API Job {Name} has failed. Reason: {response.StatusCode}"
+							);
+						}
 					}
 					return;
 				}
-				catch (Exception ex) { Libmiroppb.Log($"Error: {ex.Message}"); CompletedSuccess = false; return; }
+				catch (Exception ex) {
+					Libmiroppb.Log($"Error: {ex.Message}");
+					CompletedSuccess = false;
+                    if (NotifyOnFailureButComplete)
+                    {
+                        CompletedSuccess = true;
+                        MainDataProvider _mainDataProvider = new();
+                        NotificationProvider _notificationProvider = new();
+                        Settings? CurrentSettings = await _mainDataProvider.GetSettings();
+                        await _notificationProvider.SendNotification(
+                            CurrentSettings!.NotificationEngine,
+                            CurrentSettings.APIChannel,
+                            $"API Job {Name} has failed. Reason: {ex.Message}"
+                        );
+                    }
+                    return;
+				}
 			}
 			CompletedSuccess = true;
 			return;
 		}
 
-		public override string ToString => $"URL: {url} Cookies {cookies.Length > 0} Output: {output}";
+		public override string ToString => $"URL: {url} Cookies {cookies.Length > 0} Output: {output} Notify on Fail: {NotifyOnFailureButComplete}";
 	}
 }

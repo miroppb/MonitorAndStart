@@ -16,6 +16,7 @@ using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using MonitorAndStart.v2.Web;
 
 namespace MonitorAndStart.v2.ViewModel
 {
@@ -40,6 +41,9 @@ namespace MonitorAndStart.v2.ViewModel
 		private readonly ContextMenu _contextMenu;
 		private Timer? _executionTimer;
 		private Timer? _uploadLogsTimer;
+
+		// Web server host (keeps host alive while app runs)
+		private WebServerHost? _webServerHost;
 
 		protected virtual void RaisePropertyChanged([CallerMemberName] string? propertyName = null)
 		{
@@ -310,6 +314,30 @@ namespace MonitorAndStart.v2.ViewModel
         private async void GetSettings()
         {
             CurrentSettings = await _mainDataProvider.GetSettings();
+			if (CurrentSettings != null && CurrentSettings.Console == ConsoleEngine.ConEmu64)
+			{
+				if (!System.IO.File.Exists("conemu64.exe"))
+				{
+					Libmiroppb.Log("ConEmu64 not found. Setting Default ConsoleEngine to WindowsTerminal");
+					CurrentSettings.Console = ConsoleEngine.WindowsTerminal;
+					_mainDataProvider.SaveSettings(CurrentSettings).GetAwaiter().GetResult();
+                }
+			}
+
+			// Start embedded web server if configured
+			if (CurrentSettings != null && CurrentSettings.RunServer)
+			{
+				try
+				{
+					_webServerHost = new WebServerHost();
+					_ = _webServerHost.StartAsync(this, CurrentSettings.ServerPort);
+					Libmiroppb.Log($"Web server started on http://localhost:{CurrentSettings.ServerPort}");
+				}
+				catch (Exception ex)
+				{
+					Libmiroppb.Log($"Failed to start web server: {ex.Message}");
+				}
+			}
         }
 
         private void SetupTimer()
@@ -411,7 +439,12 @@ namespace MonitorAndStart.v2.ViewModel
 
 		private async Task ExecuteWorkflowJobsAndUpdateTimes(Workflow workflow, bool force)
 		{
-			if (!workflow.IsRunning)
+			if (!workflow.Enabled)
+			{
+				Libmiroppb.Log("Workflow is disabled");
+				return;
+			}
+            if (!workflow.IsRunning)
 			{
                 workflow.IsRunning = true;
                 foreach (Job job in workflow.Jobs)
@@ -444,6 +477,35 @@ namespace MonitorAndStart.v2.ViewModel
 			}
 			else
 				Libmiroppb.Log($"Workflow {workflow.Name} is still running...");
+		}
+
+		/// <summary>
+		/// Public wrapper used by the web server to trigger a workflow by id
+		/// </summary>
+		public Task RunWorkflowById(int id)
+		{
+			var wf = Workflows.FirstOrDefault(w => w.Id == id);
+			if (wf == null)
+			{
+				Libmiroppb.Log($"RunWorkflowById: workflow {id} not found");
+				return Task.CompletedTask;
+			}
+			// Keep semantics consistent with manual runs — force = true
+			return ExecuteWorkflowJobsAndUpdateTimes(wf, true);
+		}
+
+		/// <summary>
+		/// Public wrapper used by the web server to trigger a job by id
+		/// </summary>
+		public Task RunJobById(int id)
+		{
+			var job = AllJobs.FirstOrDefault(j => j.Id == id);
+			if (job == null)
+			{
+				Libmiroppb.Log($"RunJobById: job {id} not found");
+				return Task.CompletedTask;
+			}
+			return job.ExecuteJob(true);
 		}
 
 		private async void ExecuteAddNewJob(object a)

@@ -23,7 +23,7 @@ namespace MonitorAndStart.v2.Models
 		public DateTime LastRun { get; set; }
 		public bool RunOnStart { get; set; }
 		public bool Notify { get; set; }
-		public bool _Enabled;
+		private bool _Enabled;
 		public bool Enabled
 		{
 			get => _Enabled;

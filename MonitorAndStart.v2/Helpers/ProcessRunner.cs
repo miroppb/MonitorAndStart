@@ -1,7 +1,9 @@
-﻿using System;
+﻿using miroppb;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 
 namespace MonitorAndStart.v2
 {
@@ -139,7 +141,9 @@ namespace MonitorAndStart.v2
 			p.StartInfo.FileName = filename;
 			p.StartInfo.Arguments = parameters;
 			p.StartInfo.WorkingDirectory = Path.GetDirectoryName(filename);
-			p.Start();
+            p.StartInfo.Verb = "runas";
+			p.StartInfo.UseShellExecute = true;
+            p.Start();
 		}
-	}
+    }
 }

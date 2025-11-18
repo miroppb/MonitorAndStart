@@ -40,7 +40,7 @@
             <RowDefinition/>
             <RowDefinition/>
             <RowDefinition/>
-            <RowDefinition/>
+            <RowDefinition Height="50"/>
             <RowDefinition/>
             <RowDefinition/>
         </Grid.RowDefinitions>
@@ -63,7 +63,7 @@
         <TextBlock Text="{Binding Var7Text}" Grid.Column="1" Grid.Row="5" Visibility="{Binding Var7Visible}"/>
         <TextBox x:Name="TxtVar7" Grid.Column="2" Grid.Row="5" Grid.ColumnSpan="2" Text="{Binding Var7}" Visibility="{Binding Var7Visible}" MouseLeftButtonDown="TxtVar7_MouseLeftButtonDown"/>
 
-        <TextBlock Text="{Binding Var3Text}" Grid.Column="1" Grid.Row="6" Visibility="{Binding Var3Visible}"/>
+        <TextBlock Text="{Binding Var3Text}" Grid.Column="1" Grid.Row="6" Visibility="{Binding Var3Visible}" TextWrapping="WrapWithOverflow"/>
         <CheckBox x:Name="ChkVar3" IsChecked="{Binding Var3, Mode=TwoWay}" Grid.Column="2"  Grid.Row="6" VerticalAlignment="Center" Margin="5,0,0,0" Visibility="{Binding Var3Visible}" />
 
         <TextBlock Text="{Binding Var4Text}" Grid.Column="0" Grid.Row="7" Grid.ColumnSpan="2" HorizontalAlignment="Right" Visibility="{Binding Var4Visible}"/>

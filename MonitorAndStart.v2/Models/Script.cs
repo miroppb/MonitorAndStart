@@ -1,8 +1,10 @@
 ﻿using miroppb;
+using MonitorAndStart.v2.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MonitorAndStart.v2
@@ -30,79 +32,151 @@ namespace MonitorAndStart.v2
 
 		public static List<string> Vars => new() { "Filename", "Parameters", "Run as Admin", "Run Hidden", "Run Once" };
 
-		public override Task ExecuteJob(bool force)
-		{
-			if (ShouldRun(force))
-			{
-				IsRunning = true;
-				CompletedSuccess = false;
-				ProcessWindowStyle ws = runHidden ? ProcessWindowStyle.Minimized : ProcessWindowStyle.Normal;
+        public override async Task ExecuteJob(bool force)
+        {
+            if (ShouldRun(force))
+            {
+                IsRunning = true;
+                CompletedSuccess = false;
+                ProcessWindowStyle ws = runHidden ? ProcessWindowStyle.Minimized : ProcessWindowStyle.Normal;
 
-				try
-				{
-					Process p = new();
-					p.StartInfo.FileName = filename;
-					p.StartInfo.Arguments = parameters;
-					p.StartInfo.Verb = runAsAdmin ? "runas" : ""; //the secret sauce?
-					p.StartInfo.WorkingDirectory = Path.GetDirectoryName(filename);
-					p.StartInfo.WindowStyle = ws;
-					if (ws == ProcessWindowStyle.Hidden)
-						p.StartInfo.CreateNoWindow = true;
-					p.StartInfo.RedirectStandardOutput = true;
-					p.StartInfo.RedirectStandardError = true;
-					p.StartInfo.UseShellExecute = false;
-					p.OutputDataReceived += P_OutputDataReceived;
-					p.ErrorDataReceived += P_OutputDataReceived;
+                try
+                {
+                    if (runAsAdmin)
+                    {
+                        // Admin path using runas
+                        try
+                        {
+                            ProcessStartInfo psi = new()
+                            {
+                                FileName = filename,
+                                Arguments = parameters,
+                                Verb = "runas",
+                                UseShellExecute = true,
+                                WindowStyle = ws,
+                                WorkingDirectory = Path.GetDirectoryName(filename)
+                            };
 
-					try
-					{
-						p.Start();
-						Libmiroppb.Log($"'{p.StartInfo.FileName}' has been started with arguments '{p.StartInfo.Arguments}'");
+                            using Process p = Process.Start(psi)!;
+                            Libmiroppb.Log($"'{psi.FileName}' started as admin with arguments '{psi.Arguments}'");
+                            await Task.Run(() => p.WaitForExit()); // async wait
+                            CompletedSuccess = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            Libmiroppb.Log($"Admin launch failed: {ex.Message}");
+                            CompletedSuccess = false;
+                        }
+                    }
+                    else
+                    {
+                        // Non-admin path using async pipe client
+                        try
+                        {
+                            bool success = await NonAdminLauncherClient.LaunchProcessAsync(
+                                filename,
+                                parameters,
+                                Path.GetDirectoryName(filename)!,
+                                runHidden,
+                                line => Libmiroppb.Log(line) // log callback
+                            );
 
-						p.BeginOutputReadLine();
-						p.BeginErrorReadLine();
-						p.WaitForExit();
-
-						if (!p.StartInfo.Arguments.Contains("taskkill") && p.ExitCode != 0) //ignore taskkills
-						{
-							Libmiroppb.Log($"ExitCode {p.ExitCode}");
-							CompletedSuccess = false;
-						}
-						else
-						{
-							CompletedSuccess = true;
-						}
-					}
-					catch (Exception ex)
-					{
-						Libmiroppb.Log($"Exception: {ex.Message}");
-						CompletedSuccess = false;
-					}
-					finally
-					{
-						p.Dispose();
-						alreadyRan = true;
-					}
-				}
-				catch (Exception ex)
-				{
-					Libmiroppb.Log($"Error starting '{filename}'. Message: {ex.Message}");
-					CompletedSuccess = false;
-				}
+                            CompletedSuccess = success;
+                            Libmiroppb.Log($"'{filename}' finished with success={success}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Libmiroppb.Log($"Non-admin launch failed for '{filename}'. Message: {ex.Message}");
+                            CompletedSuccess = false;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Libmiroppb.Log($"Error starting '{filename}'. Message: {ex.Message}");
+                    CompletedSuccess = false;
+                }
             }
-			if (!Enabled)
-				CompletedSuccess = true; //mark as completed even if disabled
-			IsRunning = false;
-            return Task.CompletedTask;
+
+            if (!Enabled)
+                CompletedSuccess = true;
+            alreadyRan = true;
+            IsRunning = false;
         }
 
-		private void P_OutputDataReceived(object sender, DataReceivedEventArgs e)
-		{
-			if (e != null && e.Data != null)
-				Libmiroppb.Log(e.Data);
-		}
+        //public override Task ExecuteJob(bool force)
+        //{
+        //	if (ShouldRun(force))
+        //	{
+        //		IsRunning = true;
+        //		CompletedSuccess = false;
+        //		ProcessWindowStyle ws = runHidden ? ProcessWindowStyle.Minimized : ProcessWindowStyle.Normal;
 
-		private bool ShouldRun(bool ForceRun)
+        //		try
+        //		{
+        //			Process p = new();
+        //			p.StartInfo.FileName = filename;
+        //			p.StartInfo.Arguments = parameters;
+        //			p.StartInfo.Verb = runAsAdmin ? "runas" : ""; //the secret sauce?
+        //			p.StartInfo.WorkingDirectory = Path.GetDirectoryName(filename);
+        //			p.StartInfo.WindowStyle = ws;
+        //			if (ws == ProcessWindowStyle.Hidden)
+        //				p.StartInfo.CreateNoWindow = true;
+        //			p.StartInfo.RedirectStandardOutput = true;
+        //			p.StartInfo.RedirectStandardError = true;
+        //			p.StartInfo.UseShellExecute = false;
+        //			p.OutputDataReceived += P_OutputDataReceived;
+        //			p.ErrorDataReceived += P_OutputDataReceived;
+
+        //			try
+        //			{
+        //				p.Start();
+        //				Libmiroppb.Log($"'{p.StartInfo.FileName}' has been started with arguments '{p.StartInfo.Arguments}'");
+
+        //				p.BeginOutputReadLine();
+        //				p.BeginErrorReadLine();
+        //				p.WaitForExit();
+
+        //				if (!p.StartInfo.Arguments.Contains("taskkill") && p.ExitCode != 0) //ignore taskkills
+        //				{
+        //					Libmiroppb.Log($"ExitCode {p.ExitCode}");
+        //					CompletedSuccess = false;
+        //				}
+        //				else
+        //				{
+        //					CompletedSuccess = true;
+        //				}
+        //			}
+        //			catch (Exception ex)
+        //			{
+        //				Libmiroppb.Log($"Exception: {ex.Message}");
+        //				CompletedSuccess = false;
+        //			}
+        //			finally
+        //			{
+        //				p.Dispose();
+        //				alreadyRan = true;
+        //			}
+        //		}
+        //		catch (Exception ex)
+        //		{
+        //			Libmiroppb.Log($"Error starting '{filename}'. Message: {ex.Message}");
+        //			CompletedSuccess = false;
+        //		}
+        //          }
+        //	if (!Enabled)
+        //		CompletedSuccess = true; //mark as completed even if disabled
+        //	IsRunning = false;
+        //          return Task.CompletedTask;
+        //      }
+
+        //private void P_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        //{
+        //	if (e != null && e.Data != null)
+        //		Libmiroppb.Log(e.Data);
+        //}
+
+        private bool ShouldRun(bool ForceRun)
 		{
 			if (!Enabled) { Libmiroppb.Log("Disabled..."); return false; } //job is disabled
 			if (IsRunning) { Libmiroppb.Log("Running..."); return false; } // Job is already running

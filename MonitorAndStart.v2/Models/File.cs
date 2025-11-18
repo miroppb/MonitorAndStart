@@ -1,4 +1,6 @@
 ﻿using miroppb;
+using MonitorAndStart.v2.Data;
+using MonitorAndStart.v2.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -63,38 +65,101 @@ namespace MonitorAndStart.v2
 			return Task.CompletedTask;
         }
 
-        private Task TryToStartProcess()
+        private async Task TryToStartProcess()
         {
             try
             {
                 if (consoleApp)
                 {
-                    string newParameters = $"-dir \"{Path.GetDirectoryName(filename)}\" -run -new_console:t:\"{Name}\" \"{filename}\" {parameters}";
-                    if (runAsAdmin)
-                        ProcessRunner.ExecuteProcess("conemu64", newParameters);
+                    ConsoleEngine SelectedConsoleEngine = ConsoleEngine.WindowsTerminal;
+                    MainDataProvider _mainDataProvider = new();
+                    Settings? settings = await _mainDataProvider.GetSettings();
+                    if (settings != null) {
+                        SelectedConsoleEngine = settings.Console;
+                    }
+
+                    if (SelectedConsoleEngine == ConsoleEngine.ConEmu64)
+                    {
+                        string newParameters = $"-dir \"{Path.GetDirectoryName(filename)}\" -run " + $"-new_console:t:\"{Name}\" {(runAsAdmin ? "-cur_console:a" : "")} \"{filename}\" {parameters}";
+                        if (runAsAdmin)
+                            ProcessRunner.ExecuteProcess("conemu64.exe", newParameters);
+                        else
+                            ProcessRunner.ExecuteProcessUnElevated("conemu64.exe", newParameters);
+                    }
                     else
-                        ProcessRunner.ExecuteProcessUnElevated("conemu64", newParameters);
+                    {
+
+                        // Build the Windows Terminal command
+                        string workingDir = Path.GetDirectoryName(filename) ?? Environment.CurrentDirectory;
+
+                        // The actual command we want to run inside the tab
+                        string innerCommand = $"\"{filename}\" {parameters}".Trim();
+
+                        // Windows Terminal arguments
+                        string wtArgs =
+                            $"--window 0 new-tab --title \"{Name}\" --startingDirectory \"{workingDir}\" cmd /c {innerCommand}";
+
+                        if (runAsAdmin)
+                            ProcessRunner.ExecuteProcess("wt.exe", wtArgs);
+                        else
+                            ProcessRunner.ExecuteProcessUnElevated("wt.exe", wtArgs);
+                    }
                 }
                 else
                 {
+                    // Regular background process
                     if (runAsAdmin)
                         ProcessRunner.ExecuteProcess(filename, parameters);
                     else
                         ProcessRunner.ExecuteProcessUnElevated(filename, parameters);
                 }
+
                 Libmiroppb.Log($"'{Path.GetFileName(filename)}' has been restarted");
 
                 CompletedSuccess = true;
                 alreadyRan = true;
-                return Task.CompletedTask;
+                return;
             }
             catch (Exception ex)
             {
                 Libmiroppb.Log($"Error starting '{Path.GetFileName(filename)}'. Message: {ex.Message}");
                 CompletedSuccess = false;
             }
-            return Task.CompletedTask;
+            return;
         }
+
+        //private Task TryToStartProcess()
+        //{
+        //    try
+        //    {
+        //        if (consoleApp)
+        //        {
+        //            string newParameters = $"-dir \"{Path.GetDirectoryName(filename)}\" -run " + $"-new_console:t:\"{Name}\" {(runAsAdmin ? "-cur_console:a" : "")} \"{filename}\" {parameters}";
+        //            if (runAsAdmin)
+        //                ProcessRunner.ExecuteProcess("conemu64.exe", newParameters);
+        //            else
+        //                ProcessRunner.ExecuteProcessUnElevated("conemu64.exe", newParameters);
+        //        }
+        //        else
+        //        {
+        //            if (runAsAdmin)
+        //                ProcessRunner.ExecuteProcess(filename, parameters);
+        //            else
+        //                ProcessRunner.ExecuteProcessUnElevated(filename, parameters);
+        //        }
+        //        Libmiroppb.Log($"'{Path.GetFileName(filename)}' has been restarted");
+
+        //        CompletedSuccess = true;
+        //        alreadyRan = true;
+        //        return Task.CompletedTask;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Libmiroppb.Log($"Error starting '{Path.GetFileName(filename)}'. Message: {ex.Message}");
+        //        CompletedSuccess = false;
+        //    }
+        //    return Task.CompletedTask;
+        //}
 
         public override string ToString => $"Filename: {Path.GetFileName(filename)} Parameters: {parameters.Length > 0} Restart: {restart} Admin: {runAsAdmin} Once: {runOnce}, Console: {consoleApp}";
 

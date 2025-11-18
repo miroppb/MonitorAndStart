@@ -35,7 +35,8 @@
 		public string url = string.Empty;
 		public string cookies = string.Empty;
 		public string output = string.Empty;
-	}
+		public bool notifyonfailurebutcomplete;
+    }
 
 	class PauseJson
 	{

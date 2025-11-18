@@ -219,7 +219,7 @@ namespace MonitorAndStart.v2.Data
 						break;
 					case 4:
 						APIJson apj = JsonConvert.DeserializeObject<APIJson>(tempJob.Json)!;
-						result.Add(new API(tempJob.Name, apj.url, apj.cookies, apj.output)
+						result.Add(new API(tempJob.Name, apj.url, apj.cookies, apj.output, apj.notifyonfailurebutcomplete)
 						{
 							Id = tempJob.Id,
 							Enabled = tempJob.Enabled
@@ -263,7 +263,7 @@ namespace MonitorAndStart.v2.Data
 			}
 			else if (job is API api)
 			{
-				APIJson js = new() { url = api.url, cookies = api.cookies, output = api.output };
+				APIJson js = new() { url = api.url, cookies = api.cookies, output = api.output, notifyonfailurebutcomplete = api.NotifyOnFailureButComplete };
 				tempJob.Json = JsonConvert.SerializeObject(js);
 			}
 			else if (job is Pause pause)

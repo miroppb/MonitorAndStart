@@ -155,8 +155,9 @@ namespace MonitorAndStart.v2.ViewModel
 						Var1Text = API.Vars[0];
 						Var2Text = API.Vars[1];
 						Var7Text = API.Vars[2];
-						Var1Visible = Var2Visible = Var7Visible = Visibility.Visible;
-						Var3Visible = Var4Visible = Var5Visible = Var6Visible = Var8Visible = Visibility.Hidden;
+						Var3Text = API.Vars[3];
+                        Var1Visible = Var2Visible = Var7Visible = Var3Visible = Visibility.Visible;
+						Var4Visible = Var5Visible = Var6Visible = Var8Visible = Visibility.Hidden;
 						break;
 					case 5:
 						//pause
@@ -185,8 +186,8 @@ namespace MonitorAndStart.v2.ViewModel
 					//Set type and variables
 					SelectedType = SelectedJob.TypeOfJob;
 					Name = SelectedJob.Name;
-					switch (SelectedType)
-					{
+					switch (SelectedType) //dont forget this assignment
+                    {
 						case 0:
 							Var1 = (SelectedJob as File)!.filename;
 							Var2 = (SelectedJob as File)!.parameters;
@@ -213,7 +214,8 @@ namespace MonitorAndStart.v2.ViewModel
 							Var1 = (SelectedJob as API)!.url;
 							Var2 = (SelectedJob as API)!.cookies;
 							Var7 = (SelectedJob as API)!.output;
-							break;
+							Var3 = (SelectedJob as API)!.NotifyOnFailureButComplete;
+                            break;
 						case 5:
 							Var1 = (SelectedJob as Pause)!.seconds.ToString();
 							break;
@@ -231,7 +233,7 @@ namespace MonitorAndStart.v2.ViewModel
 				bool changed = false;
 				try
 				{
-					switch (SelectedType)
+					switch (SelectedType) //dont forget this comparison
 					{
 						case 0:
 							File job = (SelectedJob as File)!;
@@ -251,7 +253,7 @@ namespace MonitorAndStart.v2.ViewModel
 							break;
 						case 4:
 							API api = (SelectedJob as API)!;
-							changed = SelectedJob.Name != Name || Var1 != api.url || Var2 != api.cookies || Var7 != api.output;
+							changed = SelectedJob.Name != Name || Var1 != api.url || Var2 != api.cookies || Var7 != api.output || Var3 != api.NotifyOnFailureButComplete;
 							break;
 						case 5:
 							Pause pause = (SelectedJob as Pause)!;
@@ -281,7 +283,7 @@ namespace MonitorAndStart.v2.ViewModel
 								obj = new Script(Name, Var1, Var2, Var3, Var4, Var6);
 								break;
 							case 4:
-								obj = new API(Name, Var1, Var2, Var7);
+								obj = new API(Name, Var1, Var2, Var7, Var3);
 								break;
 							case 5:
 								obj = new Pause(Name, Convert.ToInt32(Var1));
@@ -319,7 +321,7 @@ namespace MonitorAndStart.v2.ViewModel
 									obj = new Script(Name, Var1, Var2, Var3, Var4, Var6);
 									break;
 								case 4:
-									obj = new API(Name, Var1, Var2, Var7);
+									obj = new API(Name, Var1, Var2, Var7, Var3);
 									break;
                                 case 5:
                                     obj = new Pause(Name, Convert.ToInt32(Var1));
@@ -363,7 +365,7 @@ namespace MonitorAndStart.v2.ViewModel
 						obj = new Script(Name, Var1, Var2, Var3, Var4, Var6);
 						break;
 					case 4:
-						obj = new API(Name, Var1, Var2, Var7);
+						obj = new API(Name, Var1, Var2, Var7, Var3);
 						break;
                     case 5:
                         obj = new Pause(Name, Convert.ToInt32(Var1));
