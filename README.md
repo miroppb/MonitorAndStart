@@ -54,12 +54,15 @@ CREATE TABLE IF NOT EXISTS `logs` (
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1;
 
-CREATE TABLE IF NOT EXISTS `settings` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `pcname` text NOT NULL,
-  `notificationengine` text NOT NULL,
-  `apichannel` text NOT NULL,
-  PRIMARY KEY (`id`)
+CREATE TABLE `settings` (
+	`id` INT(11) NOT NULL AUTO_INCREMENT,
+	`pcname` TEXT NOT NULL COLLATE 'utf8mb4_bin',
+	`notificationengine` TEXT NOT NULL COLLATE 'utf8mb4_bin',
+	`apichannel` TEXT NOT NULL COLLATE 'utf8mb4_bin',
+	`console` INT(11) NULL DEFAULT NULL,
+	`runserver` TINYINT(1) NULL DEFAULT NULL,
+	`serverport` SMALLINT(6) NULL DEFAULT NULL,
+	PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1;
 
 CREATE TABLE IF NOT EXISTS `workflows` (
