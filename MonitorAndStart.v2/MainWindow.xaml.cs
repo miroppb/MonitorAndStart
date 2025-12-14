@@ -33,25 +33,26 @@ namespace MonitorAndStart.v2
 
 			_viewModel = new MainViewModel(new MainDataProvider(), new NotificationProvider(), this, ShowTbi);
 			DataContext = _viewModel;
-			Loaded += MainWindow_Loaded;
+			ContentRendered += MainWindow_ContentRendered;
 			TxtVar1.AddHandler(MouseLeftButtonDownEvent, new MouseButtonEventHandler(TxtVar1_MouseLeftButtonDown), true);
 			_viewModel.ClosingRequest += (sender, e) => Close();
 			StateChanged += MainWindow_StateChanged;
 		}
 
-		private void MainWindow_StateChanged(object? sender, System.EventArgs e)
+        private async void MainWindow_ContentRendered(object? sender, EventArgs e)
+        {
+			StartupConfirmed = true;
+            await _viewModel.LoadAsync();
+            _viewModel.ExecuteTasks(true);
+            Closing += MainWindow_Closing;
+            await Task.Delay(1000);
+			Hide();
+        }
+
+        private void MainWindow_StateChanged(object? sender, System.EventArgs e)
 		{
 			if (WindowState == WindowState.Minimized)
 				Hide();
-		}
-
-		private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
-		{
-			await _viewModel.LoadAsync();
-            _viewModel.ExecuteTasks(true);
-			Closing += MainWindow_Closing;
-			await Task.Delay(1000);
-			Hide();
 		}
 
 		private void TxtVar1_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -131,7 +132,9 @@ namespace MonitorAndStart.v2
 
 		private bool isHandled = false;
 
-		private async void TreeViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        public bool StartupConfirmed { get; private set; }
+
+        private async void TreeViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 		{
 			if (isHandled)
 			{
